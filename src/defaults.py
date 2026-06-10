@@ -432,22 +432,18 @@ MARKET_PARAMS: list[Parameter] = [
     Parameter(
         key="usage_hours_per_day",
         label="Usage Hours per Day",
-        default=5.77,
+        default=8.0,
         min_val=0.5,
         max_val=24.0,
         step=0.25,
         unit="hrs/day",
         rationale=(
-            "Exponential distribution: median paid user = 4 hrs/day, 99th percentile ≈ 26.6 "
-            "agent-hours/day (close to stated 30). λ = ln(2)/4 = 0.1733. Mean = 1/λ = 5.77 "
-            "hrs/day. The mean exceeds the median due to the heavy right tail of power users "
-            "running parallel sessions and overnight jobs. OP used 8 hrs (flat, all users). "
-            "Prior two-tier estimate was 4.0 hrs (understated the tail)."
+            "OP's assumption: users generate tokens continuously for 8 hrs/day, 365 days/year "
+            "including weekends. Represents maximal plausible per-user usage and is a useful "
+            "gaming assumption — if the model can't be profitable at 8 hrs/day, it can't work at all. "
+            "OP used this uniformly across all users with no free tier."
         ),
-        citations=[
-            ("Bureau of Labor Statistics — American Time Use Survey",
-             "https://www.bls.gov/tus/"),
-        ],
+        citations=[],
     ),
     Parameter(
         key="blended_price_per_mt",

@@ -41,7 +41,7 @@ PRESETS = {
         "moe_active_ratio": 3.1,
         "total_gpus_millions": 10.0,
         "free_paid_ratio": 0.675,
-        "usage_hours_per_day": 5.77,
+        "usage_hours_per_day": 8.0,
         "blended_price_per_mt": 0.20,
         "adoption_years_since_launch": 3.5,
         "tps_calibration_multiplier": 1.44,
