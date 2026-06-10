@@ -33,7 +33,7 @@ def test_op_gpu_hourly_cost():
 def test_op_tps_at_1_user():
     """OP TPS at 1 concurrent user, 70B params: ~250 TPS."""
     tps = ols_logistic(1.0, 70.0, OP_CONFIG)
-    assert abs(tps - 250) < 80, f"Expected ~250, got {tps}"
+    assert abs(tps - 125) < 10, f"Expected ~125 (OP's formula), got {tps}"
 
 
 def test_op_tps_at_200_users():

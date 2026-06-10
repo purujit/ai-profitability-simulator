@@ -12,25 +12,22 @@ from scipy.optimize import fsolve
 def ols_logistic(u: float, p_billion: float, config: dict) -> float:
     """OP's logistic model from the Reddit post.
 
-    Fits a logistic curve through two NVIDIA benchmark data points:
-      - mid point: base_tps at 1 concurrent user (250 TPS at 70B params)
-      - saturates at 1.2× the 200-user benchmark (12,000 TPS at 70B params)
+    Uses the exact formula from the original post:
+      TPS_70(u) = 23893/(1 + e^{-0.0119·u}) - 11893
 
-    TPS_70(u) = L/(1 + exp(-k·u)) - offset
-    Scaled linearly by 70/p for parameter count.
+    Fitted from two NVIDIA benchmark data points:
+      - ~250 TPS/GPU at 1 concurrent user (Llama 4 Maverick 400B MoE on 8×B200)
+      - ~10,000 TPS/GPU at 200 concurrent users (Llama 3.3 70B on B200)
 
-    Parameters are read from config:
-      - base_tps_70b_1user: TPS at 1 user for 70B params
-      - saturation_tps_70b: asymptotic TPS for 70B params
+    Scaled linearly by 70/p for parameter count:
+      TPS(u, p) = TPS_70(u) × (70/p)
+
+    The base_tps and saturation_tps sliders adjust the visual asymptote in
+    the simple-linear model only; they do not affect this logistic curve.
     """
-    b = config["base_tps_70b_1user"]
-    s = config["saturation_tps_70b"]
-
-    L = s * 2 - b * 2
+    L = 23893.0
     k_base = 0.0119
-    offset = L - s
-
-    k = k_base * (70.0 / p_billion)
+    offset = 11893.0
 
     tps_70b = L / (1.0 + np.exp(-k_base * u)) - offset
     return tps_70b * (70.0 / p_billion)

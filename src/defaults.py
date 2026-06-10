@@ -66,15 +66,16 @@ GPU_PARAMS: list[Parameter] = [
     Parameter(
         key="gpu_power_draw_kw",
         label="GPU Power Draw",
-        default=1.35,
+        default=1.2,
         min_val=0.5,
         max_val=3.0,
         step=0.05,
         unit="kW",
         rationale=(
-            "Each B200 draws ~1,200W. The GB200 'superchip' pairs 2 B200s with 1 Grace CPU "
-            "(300W total), so OP attributes 150W of CPU power per GPU. Actual NVL72 rack is "
-            "rated at 132kW = 1.83kW per GPU normalized, making this value generous."
+            "Each B200 draws ~1,200W. The GB200 adds a Grace CPU (~300W shared across 2 GPUs = 150W/GPU), "
+            "bringing total per-GPU power to ~1.35kW for electricity. "
+            "OP uses 1.2kW for DC amortization and 1.35kW for electricity. The simulation "
+            "automatically adds 0.15kW CPU overhead to this slider value for electricity."
         ),
         citations=[
             ("NVIDIA GB200 NVL72 Product Page",

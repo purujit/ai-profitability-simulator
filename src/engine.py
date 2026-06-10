@@ -16,19 +16,27 @@ def compute_gpu_hourly_cost(
     gpu_power_draw_kw: float,
     pue: float,
     electricity_rate: float,
+    total_power_draw_kw: float | None = None,
 ) -> float:
     """Compute total cost per GPU per hour.
+
+    gpu_power_draw_kw is used for DC CapEx amortization (IT load).
+    total_power_draw_kw is used for electricity (GPU + CPU share).
+    Defaults to gpu_power_draw_kw + 0.15 if not specified (Grace CPU overhead).
 
     Returns:
         float: $/GPU-hour combining GPU amortization, DC CapEx amortization,
                and electricity (including PUE overhead).
     """
+    if total_power_draw_kw is None:
+        total_power_draw_kw = gpu_power_draw_kw + 0.15
+
     gpu_hourly = gpu_price_per_unit / (gpu_amortization_years * HOURS_PER_YEAR)
 
     dc_cost_per_kw_hour = (dc_capex_per_mw / 1000.0) / (dc_amortization_years * HOURS_PER_YEAR)
     dc_hourly = dc_cost_per_kw_hour * gpu_power_draw_kw
 
-    elec_hourly = gpu_power_draw_kw * electricity_rate * pue
+    elec_hourly = total_power_draw_kw * electricity_rate * pue
 
     return gpu_hourly + dc_hourly + elec_hourly
 

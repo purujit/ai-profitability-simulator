@@ -19,11 +19,13 @@ PRESETS = {
         "pue": 1.0,
         "electricity_rate": 0.1178,
         "free_paid_ratio": 0.0,
+        "gpu_power_draw_kw": 1.2,
     },
     "My Assumptions": {
         "pue": 1.0,
         "electricity_rate": 0.1178,
         "free_paid_ratio": 0.0,
+        "gpu_power_draw_kw": 1.2,
     },
 }
 
