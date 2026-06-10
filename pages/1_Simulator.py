@@ -95,9 +95,7 @@ with st.sidebar:
                     help=p.rationale,
                 )
                 if p.unit and p.unit != "ratio" and p.unit != ":1":
-                    st.caption(f"{p.unit}  \n_{p.rationale[:120]}..._")
-                else:
-                    st.caption(f"_{p.rationale[:120]}..._")
+                    st.caption(f"{p.unit}")
 
 config = {p.key: vals[p.key] for p in ALL_PARAMS}
 
