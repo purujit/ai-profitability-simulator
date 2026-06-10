@@ -400,16 +400,15 @@ MARKET_PARAMS: list[Parameter] = [
         step=0.1,
         unit=":1",
         rationale=(
-            "ChatGPT: 900M WAU (Panto AI, May 2026) with only 50M paying (~5%) = ~17-18:1 "
-            "free-to-paid ratio (LinkedIn analysis, Feb 2026). OpenAI generates ~$2B/month "
-            "revenue from subscriptions but free users consume compute without direct revenue. "
-            "OP used 0:1 (lenient baseline with no free users)."
+            "Effective GPU load ratio after accounting for cost and usage differences: raw user "
+            "count is ~18:1 (900M WAU / 50M paid, Panto AI May 2026), but free users (a) use "
+            "cheaper models (~30% the active params of frontier models → ~3× faster → ~0.3× "
+            "cost per token), and (b) generate ~0.5 hrs/day vs paid users' 8 hrs. "
+            "Effective ratio = 18 × (0.5/8.0) × 0.3 = 0.3375. OP used 0:1 (no free tier)."
         ),
         citations=[
             ("Panto AI — OpenAI Statistics: 900M+ WAU, 50M+ Subscribers (May 2026)",
              "https://www.getpanto.ai/blog/openai-statistics"),
-            ("NPR — What You Get When You Pay for AI (Jun 2026)",
-             "https://www.npr.org/2026/06/04/nx-s1-5791661/chatgpt-gemini-claude-subscription-revenue-openai"),
         ],
     ),
     Parameter(

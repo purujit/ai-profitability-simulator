@@ -40,7 +40,7 @@ PRESETS = {
         "total_parameters_b": 1600,
         "moe_active_ratio": 3.1,
         "total_gpus_millions": 10.0,
-        "free_paid_ratio": 0.675,
+        "free_paid_ratio": 0.3375,
         "usage_hours_per_day": 8.0,
         "blended_price_per_mt": 0.20,
         "adoption_years_since_launch": 3.5,
