@@ -14,6 +14,19 @@ from src.tps_models import compute_tps, TPS_MODELS
 from src.plots import cost_breakdown_pie, cost_vs_concurrency_curve, revenue_vs_cost_bar
 from src.utils import fmt_currency, fmt_compact, color_for_profit, compute_cost_breakdown
 
+PRESETS = {
+    "OP's Lenient Assumptions": {
+        "pue": 1.0,
+        "electricity_rate": 0.1178,
+        "free_paid_ratio": 0.0,
+    },
+    "My Assumptions": {
+        "pue": 1.0,
+        "electricity_rate": 0.1178,
+        "free_paid_ratio": 0.0,
+    },
+}
+
 st.title("AI Profitability Simulator")
 st.caption(
     "Based on the model by [u/ksjdragon](https://www.reddit.com/r/BetterOffline/comments/1tzwnhi/ai_profitability_is_mathematically_impossible/). "
@@ -21,35 +34,49 @@ st.caption(
 )
 
 with st.sidebar:
+    st.header("Presets")
+    pcol1, pcol2 = st.columns(2)
+    selected_preset = None
+    if pcol1.button("OP's Assumptions", use_container_width=True, help="u/ksjdragon's original lenient baseline: no free users, no cooling costs, $0.118/kWh"):
+        selected_preset = "OP's Lenient Assumptions"
+    if pcol2.button("My Assumptions", use_container_width=True, help="Your preset (currently matching OP's baseline)"):
+        selected_preset = "My Assumptions"
+
+    st.divider()
     st.header("Parameters")
     tps_model = st.selectbox("TPS Model", list(TPS_MODELS.keys()), index=0)
+
+    if selected_preset:
+        overrides = PRESETS[selected_preset]
+        for k, v in overrides.items():
+            st.session_state[k] = v
+        st.rerun()
 
     vals = {}
     for group_name, group_params in PARAM_GROUPS.items():
         with st.expander(group_name, expanded=(group_name == "GPU Hardware & Power")):
             for p in group_params:
                 if isinstance(p.step, int) and isinstance(p.min_val, int) and isinstance(p.max_val, int):
-                    min_v, max_v, step_v, def_v = int(p.min_val), int(p.max_val), int(p.step), int(p.default)
+                    min_v, max_v, step_v = int(p.min_val), int(p.max_val), int(p.step)
+                    current_val = st.session_state.get(p.key, p.default)
+                    current_val = int(current_val)
                 else:
-                    min_v, max_v, step_v, def_v = float(p.min_val), float(p.max_val), float(p.step), float(p.default)
+                    min_v, max_v, step_v = float(p.min_val), float(p.max_val), float(p.step)
+                    current_val = st.session_state.get(p.key, p.default)
+                    current_val = float(current_val)
                 vals[p.key] = st.slider(
                     p.label,
                     min_value=min_v,
                     max_value=max_v,
-                    value=def_v,
+                    value=current_val,
                     step=step_v,
+                    key=p.key,
                     help=p.rationale,
                 )
                 if p.unit and p.unit != "ratio" and p.unit != ":1":
                     st.caption(f"{p.unit}  \n_{p.rationale[:120]}..._")
                 else:
                     st.caption(f"_{p.rationale[:120]}..._")
-
-    if st.button("Restore OP's Lenient Defaults", use_container_width=True):
-        for p in ALL_PARAMS:
-            if p.key in st.session_state:
-                st.session_state[p.key] = p.default
-        st.rerun()
 
 config = {p.key: vals[p.key] for p in ALL_PARAMS}
 
