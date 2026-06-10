@@ -24,12 +24,16 @@ with st.sidebar:
     for group_name, group_params in PARAM_GROUPS.items():
         with st.expander(group_name, expanded=(group_name == "GPU Hardware & Power")):
             for p in group_params:
+                if isinstance(p.step, int) and isinstance(p.min_val, int) and isinstance(p.max_val, int):
+                    min_v, max_v, step_v, def_v = int(p.min_val), int(p.max_val), int(p.step), int(p.default)
+                else:
+                    min_v, max_v, step_v, def_v = float(p.min_val), float(p.max_val), float(p.step), float(p.default)
                 vals[p.key] = st.slider(
                     p.label,
-                    min_value=p.min_val,
-                    max_value=p.max_val,
-                    value=p.default,
-                    step=p.step,
+                    min_value=min_v,
+                    max_value=max_v,
+                    value=def_v,
+                    step=step_v,
                     help=p.rationale,
                     key=f"be_{p.key}",
                 )
