@@ -140,6 +140,7 @@ with col_right:
         computed_params,
         compute_tps,
         curve_config,
+        tps_model,
         total_concurrent,
         results["cost_per_mt"],
     )

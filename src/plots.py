@@ -40,6 +40,7 @@ def cost_vs_concurrency_curve(
     p_billion: float,
     tps_func,
     config: dict,
+    model_name: str,
     current_u: float,
     current_cost: float,
 ) -> go.Figure:
@@ -48,7 +49,7 @@ def cost_vs_concurrency_curve(
 
     costs = []
     for u in u_range:
-        tps = tps_func(u, p_billion, config)
+        tps = tps_func(u, p_billion, model_name, config)
         hourly = config.get("_gpu_hourly_cost", 1.89)
         tokens_ph = 3600 * tps
         cost_mt = hourly / (tokens_ph / 1e6) if tps > 0 else float("inf")
