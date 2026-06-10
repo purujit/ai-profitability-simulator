@@ -326,26 +326,6 @@ MODEL_PARAMS: list[Parameter] = [
              "https://developer.nvidia.com/blog/nvidia-blackwell-inference-performance-leap/"),
         ],
     ),
-    Parameter(
-        key="output_input_token_ratio",
-        label="Output:Input Token Ratio",
-        default=4.0,
-        min_val=0.5,
-        max_val=20.0,
-        step=0.5,
-        unit=":1",
-        rationale=(
-            "Frontier models using chain-of-thought reasoning can generate 3-5× the number "
-            "of input tokens as hidden reasoning tokens before producing output. Higher ratios "
-            "favor the model provider since output tokens typically cost more."
-        ),
-        citations=[
-            ("OpenAI — GPT-5.5 System Card",
-             "https://openai.com/index/gpt-5-5-system-card/"),
-            ("Anthropic — Claude Opus 4.7 Model Card",
-             "https://www.anthropic.com/research/claude-opus-model-card"),
-        ],
-    ),
 ]
 
 MARKET_PARAMS: list[Parameter] = [
