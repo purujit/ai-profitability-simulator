@@ -30,7 +30,7 @@ with st.sidebar:
                     min_value=float(p.min_val),
                     max_value=float(p.max_val),
                     value=float(p.default),
-                    step=float(p.step) if p.step < 1 else int(p.step),
+                    step=float(p.step),
                     key=f"sens_{p.key}",
                 )
     if st.button("Restore OP's Defaults", use_container_width=True):
