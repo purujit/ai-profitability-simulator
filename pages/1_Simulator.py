@@ -20,12 +20,31 @@ PRESETS = {
         "electricity_rate": 0.1178,
         "free_paid_ratio": 0.0,
         "gpu_power_draw_kw": 1.2,
+        "gpu_price_per_unit": 38889,
+        "gpu_amortization_years": 3,
+        "discount_rate_pct": 0.0,
+        "bonus_depreciation_pct": 0.0,
+        "usage_hours_per_day": 8.0,
+        "tps_calibration_multiplier": 1.0,
     },
     "My Assumptions": {
-        "pue": 1.0,
-        "electricity_rate": 0.1178,
-        "free_paid_ratio": 0.0,
-        "gpu_power_draw_kw": 1.2,
+        "pue": 1.1,
+        "electricity_rate": 0.0826,
+        "gpu_power_draw_kw": 0.6,
+        "gpu_price_per_unit": 41700,
+        "gpu_amortization_years": 6,
+        "discount_rate_pct": 7.0,
+        "bonus_depreciation_pct": 100.0,
+        "dc_capex_per_mw": 12_000_000,
+        "dc_building_share_pct": 30.0,
+        "total_parameters_b": 1600,
+        "moe_active_ratio": 3.1,
+        "total_gpus_millions": 10.0,
+        "free_paid_ratio": 0.675,
+        "usage_hours_per_day": 5.77,
+        "blended_price_per_mt": 0.20,
+        "adoption_years_since_launch": 3.5,
+        "tps_calibration_multiplier": 1.44,
     },
 }
 
@@ -82,6 +101,14 @@ with st.sidebar:
 
 config = {p.key: vals[p.key] for p in ALL_PARAMS}
 
+if config.get("adoption_years_since_launch") is not None:
+    from src.engine import compute_paid_users_from_adoption
+    derived_paid = compute_paid_users_from_adoption(config["adoption_years_since_launch"])
+    config["paid_users_millions"] = derived_paid
+    max_gpus = config["total_gpus_millions"]
+    gpu_share = derived_paid / 500.0
+    config["total_gpus_millions"] = max_gpus * gpu_share
+
 gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_price_per_unit"],
     config["gpu_amortization_years"],
@@ -90,6 +117,10 @@ gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_power_draw_kw"],
     config["pue"],
     config["electricity_rate"],
+    discount_rate_pct=config.get("discount_rate_pct", 0.0),
+    bonus_depreciation_pct=config.get("bonus_depreciation_pct", 0.0),
+    corporate_tax_rate=config.get("corporate_tax_rate", 21.0),
+    dc_building_share_pct=config.get("dc_building_share_pct"),
 )
 
 total_concurrent, paid_concurrent = compute_concurrency(

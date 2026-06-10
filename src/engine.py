@@ -6,6 +6,16 @@ Pure functions — no side effects, no global state.
 import numpy as np
 
 HOURS_PER_YEAR = 365.25 * 24
+BUILDING_AMORT_YEARS = 20.0
+
+ADOPTION_TAM = 500.0  # million paid users at saturation
+ADOPTION_K = 2.5      # logistic growth rate (5x smartphone)
+ADOPTION_MIDPOINT = 4.2  # years since ChatGPT launch (Nov 2022)
+
+
+def compute_paid_users_from_adoption(years_since_launch: float) -> float:
+    """Logistic S-curve for paid AI user adoption."""
+    return ADOPTION_TAM / (1.0 + np.exp(-ADOPTION_K * (years_since_launch - ADOPTION_MIDPOINT)))
 
 
 def compute_gpu_hourly_cost(
@@ -17,6 +27,10 @@ def compute_gpu_hourly_cost(
     pue: float,
     electricity_rate: float,
     total_power_draw_kw: float | None = None,
+    discount_rate_pct: float = 0.0,
+    bonus_depreciation_pct: float = 0.0,
+    corporate_tax_rate: float = 21.0,
+    dc_building_share_pct: float | None = None,
 ) -> float:
     """Compute total cost per GPU per hour.
 
@@ -24,16 +38,49 @@ def compute_gpu_hourly_cost(
     total_power_draw_kw is used for electricity (GPU + CPU share).
     Defaults to gpu_power_draw_kw + 0.15 if not specified (Grace CPU overhead).
 
+    discount_rate_pct: cost of capital for PV-based annualization. 0 = flat (OP).
+    bonus_depreciation_pct: % of GPU cost deductible year 1 per OBBB. 0 = ignored (OP).
+    corporate_tax_rate: used to compute tax shield from bonus depreciation.
+    dc_building_share_pct: % of DC CapEx in building shell (20yr). Remainder = electrical (GPU amort).
+                          None/100 = OP model (single amortization period for all DC).
+
+    The effective GPU purchase price is reduced by the bonus depreciation tax shield:
+      effective_price = gpu_price * (1 - bonus% * tax_rate)
+
+    Then annualized using the annuity formula with the discount rate:
+      A = P * r * (1+r)^n / ((1+r)^n - 1)
+    If r = 0 (OP's assumption): A = P / n (straight-line).
+
     Returns:
-        float: $/GPU-hour combining GPU amortization, DC CapEx amortization,
-               and electricity (including PUE overhead).
+        float: $/GPU-hour.
     """
     if total_power_draw_kw is None:
         total_power_draw_kw = gpu_power_draw_kw + 0.15
 
-    gpu_hourly = gpu_price_per_unit / (gpu_amortization_years * HOURS_PER_YEAR)
+    bonus_rec = bonus_depreciation_pct / 100.0
+    tax_rec = corporate_tax_rate / 100.0
+    effective_price = gpu_price_per_unit * (1.0 - bonus_rec * tax_rec)
 
-    dc_cost_per_kw_hour = (dc_capex_per_mw / 1000.0) / (dc_amortization_years * HOURS_PER_YEAR)
+    r = discount_rate_pct / 100.0
+    n = gpu_amortization_years
+
+    if r == 0.0:
+        annual_cost = effective_price / n
+    else:
+        factor = (1.0 + r) ** n
+        annual_cost = effective_price * r * factor / (factor - 1.0)
+
+    gpu_hourly = annual_cost / HOURS_PER_YEAR
+
+    building_share = dc_building_share_pct / 100.0 if dc_building_share_pct is not None else 1.0
+    electrical_share = 1.0 - building_share
+
+    if building_share < 1.0 and building_share > 0.0:
+        building_hourly = (dc_capex_per_mw / 1000.0) * building_share / (BUILDING_AMORT_YEARS * HOURS_PER_YEAR)
+        electrical_hourly = (dc_capex_per_mw / 1000.0) * electrical_share / (gpu_amortization_years * HOURS_PER_YEAR)
+        dc_cost_per_kw_hour = building_hourly + electrical_hourly
+    else:
+        dc_cost_per_kw_hour = (dc_capex_per_mw / 1000.0) / (dc_amortization_years * HOURS_PER_YEAR)
     dc_hourly = dc_cost_per_kw_hour * gpu_power_draw_kw
 
     elec_hourly = total_power_draw_kw * electricity_rate * pue

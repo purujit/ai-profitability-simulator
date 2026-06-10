@@ -92,4 +92,6 @@ def compute_tps(u: float, p_billion: float, model_name: str, config: dict) -> fl
     u = max(u, 0.01)
     p_billion = max(p_billion, 0.1)
     func = TPS_MODELS.get(model_name, ols_logistic)
-    return func(u, p_billion, config)
+    raw_tps = func(u, p_billion, config)
+    multiplier = config.get("tps_calibration_multiplier", 1.0)
+    return raw_tps * multiplier

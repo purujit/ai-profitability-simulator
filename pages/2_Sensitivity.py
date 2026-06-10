@@ -45,6 +45,10 @@ gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_power_draw_kw"],
     config["pue"],
     config["electricity_rate"],
+    discount_rate_pct=config.get("discount_rate_pct", 0.0),
+    bonus_depreciation_pct=config.get("bonus_depreciation_pct", 0.0),
+    corporate_tax_rate=config.get("corporate_tax_rate", 21.0),
+    dc_building_share_pct=config.get("dc_building_share_pct"),
 )
 
 computed_params = config["total_parameters_b"] * (config["moe_active_ratio"] / 100.0)
@@ -91,6 +95,10 @@ def run_scenario(vals_overrides):
         c["gpu_price_per_unit"], c["gpu_amortization_years"],
         c["dc_capex_per_mw"], c["dc_amortization_years"],
         c["gpu_power_draw_kw"], c["pue"], c["electricity_rate"],
+        discount_rate_pct=c.get("discount_rate_pct", 0.0),
+        bonus_depreciation_pct=c.get("bonus_depreciation_pct", 0.0),
+        corporate_tax_rate=c.get("corporate_tax_rate", 21.0),
+        dc_building_share_pct=c.get("dc_building_share_pct"),
     )
     comp_p = c["total_parameters_b"] * (c["moe_active_ratio"] / 100.0)
     tc, pc = compute_concurrency(

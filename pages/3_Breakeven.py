@@ -50,6 +50,10 @@ gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_power_draw_kw"],
     config["pue"],
     config["electricity_rate"],
+    discount_rate_pct=config.get("discount_rate_pct", 0.0),
+    bonus_depreciation_pct=config.get("bonus_depreciation_pct", 0.0),
+    corporate_tax_rate=config.get("corporate_tax_rate", 21.0),
+    dc_building_share_pct=config.get("dc_building_share_pct"),
 )
 
 computed_params = config["total_parameters_b"] * (config["moe_active_ratio"] / 100.0)
@@ -138,6 +142,9 @@ elif solve_mode == "Required GPU price reduction":
             mid, config["gpu_amortization_years"], config["dc_capex_per_mw"],
             config["dc_amortization_years"], config["gpu_power_draw_kw"],
             config["pue"], config["electricity_rate"],
+            discount_rate_pct=config.get("discount_rate_pct", 0.0),
+            bonus_depreciation_pct=config.get("bonus_depreciation_pct", 0.0),
+            corporate_tax_rate=config.get("corporate_tax_rate", 21.0),
         )
         test_tps = compute_tps(total_concurrent, computed_params, tps_model, test_config)
         test_paid = paid_concurrent
@@ -167,6 +174,10 @@ elif solve_mode == "Required electricity rate":
             config["gpu_price_per_unit"], config["gpu_amortization_years"],
             config["dc_capex_per_mw"], config["dc_amortization_years"],
             config["gpu_power_draw_kw"], config["pue"], rate,
+            discount_rate_pct=config.get("discount_rate_pct", 0.0),
+            bonus_depreciation_pct=config.get("bonus_depreciation_pct", 0.0),
+            corporate_tax_rate=config.get("corporate_tax_rate", 21.0),
+            dc_building_share_pct=config.get("dc_building_share_pct"),
         )
         test_tps = compute_tps(total_concurrent, computed_params, tps_model, test_config)
         test_r = compute_profitability(test_ghc, test_tps, total_concurrent, paid_concurrent, config["blended_price_per_mt"])
