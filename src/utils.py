@@ -54,9 +54,22 @@ def slider_value_format(unit: str) -> str | None:
     return formats.get(unit)
 
 
-def should_use_compact_number_input(unit: str) -> bool:
-    """Return true for parameters whose slider readout becomes unreadably long."""
-    return unit in {"$", "$/MW"}
+def scaled_slider_value_format(display_unit: str) -> str | None:
+    """Return a format string for a scaled parameter control."""
+    formats = {
+        "$K": "$%.0fK",
+        "$M/MW": "$%.1fM/MW",
+    }
+    return formats.get(display_unit)
+
+
+def display_scale_for_unit(unit: str) -> tuple[float, str]:
+    """Return display divisor and label suffix for large-dollar controls."""
+    if unit == "$":
+        return 1_000.0, "$K"
+    if unit == "$/MW":
+        return 1_000_000.0, "$M/MW"
+    return 1.0, unit
 
 
 def color_for_profit(profit: float) -> str:

@@ -20,7 +20,8 @@ from src.utils import (
     fmt_compact,
     color_for_profit,
     compute_cost_breakdown,
-    should_use_compact_number_input,
+    display_scale_for_unit,
+    scaled_slider_value_format,
     slider_value_format,
 )
 
@@ -122,16 +123,22 @@ with st.sidebar:
                     min_v, max_v, step_v = float(p.min_val), float(p.max_val), float(p.step)
                     current_val = st.session_state.get(p.key, p.default)
                     current_val = float(current_val)
-                if should_use_compact_number_input(p.unit):
-                    vals[p.key] = st.number_input(
+                scale, display_unit = display_scale_for_unit(p.unit)
+                if scale != 1.0:
+                    display_val = current_val / scale
+                    display_min = min_v / scale
+                    display_max = max_v / scale
+                    display_step = step_v / scale
+                    vals[p.key] = st.slider(
                         p.label,
-                        min_value=min_v,
-                        max_value=max_v,
-                        value=current_val,
-                        step=step_v,
+                        min_value=display_min,
+                        max_value=display_max,
+                        value=display_val,
+                        step=display_step,
                         key=p.key,
                         help=p.rationale,
-                    )
+                        format=scaled_slider_value_format(display_unit),
+                    ) * scale
                 else:
                     vals[p.key] = st.slider(
                         p.label,

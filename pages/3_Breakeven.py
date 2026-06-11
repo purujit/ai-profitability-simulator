@@ -13,7 +13,13 @@ from src.engine import (
     solve_breakeven_users,
 )
 from src.tps_models import compute_tps, TPS_MODELS
-from src.utils import fmt_currency, fmt_compact, should_use_compact_number_input, slider_value_format
+from src.utils import (
+    fmt_currency,
+    fmt_compact,
+    display_scale_for_unit,
+    scaled_slider_value_format,
+    slider_value_format,
+)
 
 st.title("Breakeven Solver")
 st.caption("Find the conditions required for AI inference to be profitable.")
@@ -29,16 +35,18 @@ with st.sidebar:
                     min_v, max_v, step_v, def_v = int(p.min_val), int(p.max_val), int(p.step), int(p.default)
                 else:
                     min_v, max_v, step_v, def_v = float(p.min_val), float(p.max_val), float(p.step), float(p.default)
-                if should_use_compact_number_input(p.unit):
-                    vals[p.key] = st.number_input(
+                scale, display_unit = display_scale_for_unit(p.unit)
+                if scale != 1.0:
+                    vals[p.key] = st.slider(
                         p.label,
-                        min_value=min_v,
-                        max_value=max_v,
-                        value=def_v,
-                        step=step_v,
+                        min_value=min_v / scale,
+                        max_value=max_v / scale,
+                        value=def_v / scale,
+                        step=step_v / scale,
                         help=p.rationale,
                         key=f"be_{p.key}",
-                    )
+                        format=scaled_slider_value_format(display_unit),
+                    ) * scale
                 else:
                     vals[p.key] = st.slider(
                         p.label,
