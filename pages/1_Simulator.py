@@ -100,12 +100,9 @@ with st.sidebar:
 config = {p.key: vals[p.key] for p in ALL_PARAMS}
 
 if config.get("adoption_years_since_launch") is not None:
-    from src.engine import compute_paid_users_from_adoption, ADOPTION_TAM
+    from src.engine import compute_paid_users_from_adoption
     derived_paid = compute_paid_users_from_adoption(config["adoption_years_since_launch"])
     config["paid_users_millions"] = derived_paid
-    max_gpus = config["total_gpus_millions"]
-    gpu_share = derived_paid / ADOPTION_TAM
-    config["total_gpus_millions"] = max_gpus * gpu_share
 
 gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_price_per_unit"],
