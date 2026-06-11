@@ -128,16 +128,20 @@ param_deltas = []
 for key in perturbable_keys:
     c_lo = dict(config)
     c_lo[key] *= (1 - delta_pct / 100)
-    profit_lo = run_scenario(c_lo)["profit_per_gpu_hour"]
+    result_lo = run_scenario(c_lo)
+    profit_lo = result_lo["profit_per_gpu_hour"]
+    margin_lo = result_lo["profit_margin_pct"]
 
     c_hi = dict(config)
     c_hi[key] *= (1 + delta_pct / 100)
-    profit_hi = run_scenario(c_hi)["profit_per_gpu_hour"]
+    result_hi = run_scenario(c_hi)
+    profit_hi = result_hi["profit_per_gpu_hour"]
+    margin_hi = result_hi["profit_margin_pct"]
 
-    param_deltas.append((perturbable_labels[key], profit_lo, profit_hi))
+    param_deltas.append((perturbable_labels[key], profit_lo, profit_hi, margin_lo, margin_hi))
 
 st.subheader("Tornado Chart")
-st.caption(f"Each row shows profit change from a {delta_pct}% one-variable perturbation. Blue = lower input value; orange = higher input value. Right of zero improves profit.")
+st.caption(f"Each row shows profit change from a {delta_pct}% one-variable perturbation. Blue = lower input value; orange = higher input value. Hover shows resulting margin.")
 tornado_fig = sensitivity_tornado(base_profit, param_deltas)
 st.plotly_chart(tornado_fig, width="stretch")
 

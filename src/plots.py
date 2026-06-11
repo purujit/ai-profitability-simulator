@@ -142,7 +142,7 @@ def revenue_vs_cost_bar(
 
 def sensitivity_tornado(
     base_profit: float,
-    param_deltas: list[tuple[str, float, float]],
+    param_deltas: list[tuple[str, float, float, float, float]],
 ) -> go.Figure:
     """Tornado chart showing profit sensitivity to ±20% changes in each parameter."""
     param_deltas.sort(key=lambda x: abs(x[2] - x[1]), reverse=True)
@@ -150,11 +150,13 @@ def sensitivity_tornado(
 
     low_values = [p[1] for p in param_deltas][::-1]
     high_values = [p[2] for p in param_deltas][::-1]
+    low_margins = [p[3] for p in param_deltas][::-1]
+    high_margins = [p[4] for p in param_deltas][::-1]
     labels = [p[0] for p in param_deltas][::-1]
     low_deltas = [p - base_profit for p in low_values]
     high_deltas = [p - base_profit for p in high_values]
-    low_hover = [[f"${profit:.2f}", f"${delta:+.2f}"] for profit, delta in zip(low_values, low_deltas)]
-    high_hover = [[f"${profit:.2f}", f"${delta:+.2f}"] for profit, delta in zip(high_values, high_deltas)]
+    low_hover = [[f"{margin:+.1f}%", f"${delta:+.2f}"] for margin, delta in zip(low_margins, low_deltas)]
+    high_hover = [[f"{margin:+.1f}%", f"${delta:+.2f}"] for margin, delta in zip(high_margins, high_deltas)]
 
     fig = go.Figure()
 
@@ -182,7 +184,7 @@ def sensitivity_tornado(
             name="Lower value",
             marker=dict(color="#3498db", size=10, symbol="circle"),
             customdata=low_hover,
-            hovertemplate="%{y}<br>Profit: %{customdata[0]}/GPU-hr<br>Change: %{customdata[1]}/GPU-hr<extra>Lower value</extra>",
+            hovertemplate="%{y}<br>Margin: %{customdata[0]}<br>Profit change: %{customdata[1]}/GPU-hr<extra>Lower value</extra>",
         )
     )
     fig.add_trace(
@@ -193,7 +195,7 @@ def sensitivity_tornado(
             name="Higher value",
             marker=dict(color="#f39c12", size=10, symbol="diamond"),
             customdata=high_hover,
-            hovertemplate="%{y}<br>Profit: %{customdata[0]}/GPU-hr<br>Change: %{customdata[1]}/GPU-hr<extra>Higher value</extra>",
+            hovertemplate="%{y}<br>Margin: %{customdata[0]}<br>Profit change: %{customdata[1]}/GPU-hr<extra>Higher value</extra>",
         )
     )
 
