@@ -37,16 +37,18 @@ with st.sidebar:
                     min_v, max_v, step_v, def_v = float(p.min_val), float(p.max_val), float(p.step), float(p.default)
                 scale, display_unit = display_scale_for_unit(p.unit)
                 if scale != 1.0:
-                    vals[p.key] = st.slider(
+                    display_key = f"be_{p.key}_display"
+                    display_selected = st.slider(
                         p.label,
                         min_value=min_v / scale,
                         max_value=max_v / scale,
                         value=def_v / scale,
                         step=step_v / scale,
                         help=p.rationale,
-                        key=f"be_{p.key}",
+                        key=display_key,
                         format=scaled_slider_value_format(display_unit),
-                    ) * scale
+                    )
+                    vals[p.key] = display_selected * scale
                 else:
                     vals[p.key] = st.slider(
                         p.label,
@@ -61,6 +63,7 @@ with st.sidebar:
     if st.button("Restore Baseline Defaults", width="stretch"):
         for p in ALL_PARAMS:
             st.session_state.pop(f"be_{p.key}", None)
+            st.session_state.pop(f"be_{p.key}_display", None)
         st.rerun()
 
 config = apply_market_curves({p.key: vals[p.key] for p in ALL_PARAMS})

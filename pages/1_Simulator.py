@@ -71,6 +71,7 @@ PRESETS = {
         "gpu_deployment_growth_rate": 2.0,
     },
 }
+PARAMS_BY_KEY = {p.key: p for p in ALL_PARAMS}
 
 st.title("AI Profitability Simulator")
 st.caption(
@@ -108,6 +109,11 @@ with st.sidebar:
         overrides = PRESETS[selected_preset]
         for k, v in overrides.items():
             st.session_state[k] = v
+            param = PARAMS_BY_KEY.get(k)
+            if param:
+                scale, _ = display_scale_for_unit(param.unit)
+                if scale != 1.0:
+                    st.session_state[f"{k}_display"] = v / scale
         st.session_state["_active_preset"] = selected_preset
         st.rerun()
 
@@ -129,16 +135,19 @@ with st.sidebar:
                     display_min = min_v / scale
                     display_max = max_v / scale
                     display_step = step_v / scale
-                    vals[p.key] = st.slider(
+                    display_key = f"{p.key}_display"
+                    display_selected = st.slider(
                         p.label,
                         min_value=display_min,
                         max_value=display_max,
                         value=display_val,
                         step=display_step,
-                        key=p.key,
+                        key=display_key,
                         help=p.rationale,
                         format=scaled_slider_value_format(display_unit),
-                    ) * scale
+                    )
+                    vals[p.key] = display_selected * scale
+                    st.session_state[p.key] = vals[p.key]
                 else:
                     vals[p.key] = st.slider(
                         p.label,
