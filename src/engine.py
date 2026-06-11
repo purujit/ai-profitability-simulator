@@ -20,8 +20,8 @@ def compute_paid_users_from_adoption(years_since_launch: float, tam: float = ADO
 
 
 GPU_SATURATION_M = 25.0  # million GPUs at full DC buildout
-GPU_K = 2.0               # deployment growth rate (slightly slower than adoption, physical constraints)
-GPU_MIDPOINT = 4.13       # calibrated to hit 5.5M at t=3.5 (Jensen Huang Oct 2025 disclosure)
+GPU_K = 2.0               # deployment growth rate
+GPU_MIDPOINT = 4.265      # calibrated to 4.45M at t=3.5 (OP's GPU count)
 
 
 def compute_gpus_from_deployment(years_since_launch: float, saturation: float = GPU_SATURATION_M,

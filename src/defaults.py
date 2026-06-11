@@ -369,15 +369,15 @@ MARKET_PARAMS: list[Parameter] = [
     Parameter(
         key="gpu_deployment_midpoint",
         label="GPU Deployment Midpoint",
-        default=4.13,
+        default=4.265,
         min_val=1.0,
         max_val=8.0,
         step=0.1,
         unit="years since ChatGPT",
         rationale=(
-            "When half the planned GPU fleet is deployed. Calibrated to ~5.5M deployed at "
-            "t=3.5 (Jensen Huang's disclosed shipments). At t=4.13: 12.5M GPUs deployed. "
-            "At t=7.0: ~24.7M (approaching 25M saturation)."
+            "When half the planned GPU fleet is deployed. Calibrated to ~4.45M deployed at "
+            "t=3.5 (OP's B200-equivalent estimate; 5.5M per Jensen Huang disclosure). "
+            "At t=4.27: 12.5M GPUs deployed. At t=7.0: ~24.9M (approaching 25M saturation)."
         ),
         citations=[],
     ),

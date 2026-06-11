@@ -26,8 +26,6 @@ PRESETS = {
         "bonus_depreciation_pct": 0.0,
         "usage_hours_per_day": 8.0,
         "tps_calibration_multiplier": 1.0,
-        "total_gpus_millions": 4.45,
-        "paid_users_millions": 80,
         "blended_price_per_mt": 5.00,
         "dc_capex_per_mw": 9_000_000,
         "dc_building_share_pct": 100.0,
@@ -35,6 +33,7 @@ PRESETS = {
         "moe_active_ratio": 7.5,
         "base_tps_70b_1user": 250,
         "saturation_tps_70b": 12000,
+        "adoption_years_since_launch": 3.5,
     },
     "My Assumptions": {
         "pue": 1.1,
@@ -52,9 +51,12 @@ PRESETS = {
         "usage_hours_per_day": 8.0,
         "blended_price_per_mt": 0.20,
         "adoption_years_since_launch": 3.5,
+        "adoption_tam_millions": 1000.0,
+        "adoption_growth_rate": 2.5,
+        "adoption_midpoint_years": 4.48,
         "tps_calibration_multiplier": 1.44,
         "gpu_saturation_millions": 25.0,
-        "gpu_deployment_midpoint": 4.13,
+        "gpu_deployment_midpoint": 4.265,
         "gpu_deployment_growth_rate": 2.0,
     },
 }
@@ -117,11 +119,10 @@ if t is not None:
     k_adopt = config.get("adoption_growth_rate", 2.5)
     mp_adopt = config.get("adoption_midpoint_years", 4.48)
     config["paid_users_millions"] = compute_paid_users_from_adoption(t, tam, k_adopt, mp_adopt)
-    if config.get("gpu_saturation_millions") is not None:
-        saturation = config.get("gpu_saturation_millions", 25.0)
-        k_gpu = config.get("gpu_deployment_growth_rate", 2.0)
-        mp_gpu = config.get("gpu_deployment_midpoint", 4.13)
-        config["total_gpus_millions"] = compute_gpus_from_deployment(t, saturation, k_gpu, mp_gpu)
+    saturation = config.get("gpu_saturation_millions", 25.0)
+    k_gpu = config.get("gpu_deployment_growth_rate", 2.0)
+    mp_gpu = config.get("gpu_deployment_midpoint", 4.265)
+    config["total_gpus_millions"] = compute_gpus_from_deployment(t, saturation, k_gpu, mp_gpu)
 
 gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_price_per_unit"],
