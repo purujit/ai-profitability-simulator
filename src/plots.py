@@ -153,6 +153,8 @@ def sensitivity_tornado(
     labels = [p[0] for p in param_deltas][::-1]
     low_deltas = [p - base_profit for p in low_values]
     high_deltas = [p - base_profit for p in high_values]
+    low_hover = [[f"${profit:.2f}", f"${delta:+.2f}"] for profit, delta in zip(low_values, low_deltas)]
+    high_hover = [[f"${profit:.2f}", f"${delta:+.2f}"] for profit, delta in zip(high_values, high_deltas)]
 
     fig = go.Figure()
 
@@ -179,8 +181,8 @@ def sensitivity_tornado(
             mode="markers",
             name="Lower value",
             marker=dict(color="#3498db", size=10, symbol="circle"),
-            customdata=low_values,
-            hovertemplate="%{y}<br>Profit: $%{customdata:.2f}/GPU-hr<br>Change: $%{x:+.2f}/GPU-hr<extra>Lower value</extra>",
+            customdata=low_hover,
+            hovertemplate="%{y}<br>Profit: %{customdata[0]}/GPU-hr<br>Change: %{customdata[1]}/GPU-hr<extra>Lower value</extra>",
         )
     )
     fig.add_trace(
@@ -190,8 +192,8 @@ def sensitivity_tornado(
             mode="markers",
             name="Higher value",
             marker=dict(color="#f39c12", size=10, symbol="diamond"),
-            customdata=high_values,
-            hovertemplate="%{y}<br>Profit: $%{customdata:.2f}/GPU-hr<br>Change: $%{x:+.2f}/GPU-hr<extra>Higher value</extra>",
+            customdata=high_hover,
+            hovertemplate="%{y}<br>Profit: %{customdata[0]}/GPU-hr<br>Change: %{customdata[1]}/GPU-hr<extra>Higher value</extra>",
         )
     )
 
