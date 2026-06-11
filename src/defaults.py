@@ -331,24 +331,6 @@ MODEL_PARAMS: list[Parameter] = [
 
 MARKET_PARAMS: list[Parameter] = [
     Parameter(
-        key="total_gpus_millions",
-        label="Total GPUs Deployed",
-        default=5.5,
-        min_val=0.1,
-        max_val=50.0,
-        step=0.05,
-        unit="M",
-        rationale=(
-            "Used as static value when deployment curve is off. Replaced by the GPU Deployment "
-            "Curve below when GPU saturation is set. Currently ~5.5M B200-eq deployed (Jensen "
-            "Huang Oct 2025 disclosure: 4M Hopper + 3M Blackwell GPUs shipped — Epoch AI)."
-        ),
-        citations=[
-            ("Epoch AI — AI Chip Sales Methodology (Feb 2026)",
-             "https://epoch.ai/data/ai-chip-sales-documentation/methodology"),
-        ],
-    ),
-    Parameter(
         key="gpu_saturation_millions",
         label="GPU Saturation (Total Planned Fleet)",
         default=25.0,
@@ -394,26 +376,6 @@ MARKET_PARAMS: list[Parameter] = [
             "due to physical construction constraints. Higher k = faster ramp to saturation."
         ),
         citations=[],
-    ),
-    Parameter(
-        key="paid_users_millions",
-        label="Paid Users",
-        default=80,
-        min_val=1,
-        max_val=1000,
-        step=1,
-        unit="M",
-        rationale=(
-            "OpenAI: 50M paid subscribers (Panto AI, May 2026), 900M+ WAU, $2B/month revenue "
-            "(Reuters, 2026). Anthropic: paid subs doubled in H1 2026 (TechCrunch, Mar 2026), "
-            "estimated ~25-30M. Combined ~75-80M. OP's 80M estimate was accurate."
-        ),
-        citations=[
-            ("Panto AI — OpenAI Statistics 2026 (May 2026)",
-             "https://www.getpanto.ai/blog/openai-statistics"),
-            ("TechCrunch — Anthropic Claude Paid Subscriptions Doubled (Mar 2026)",
-             "https://techcrunch.com/2026/03/28/anthropics-claude-popularity-with-paying-consumers-is-skyrocketing/"),
-        ],
     ),
     Parameter(
         key="free_paid_ratio",
