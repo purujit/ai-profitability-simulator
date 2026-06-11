@@ -8,9 +8,9 @@ import numpy as np
 HOURS_PER_YEAR = 365.25 * 24
 BUILDING_AMORT_YEARS = 20.0
 
-ADOPTION_TAM = 500.0  # million paid users at saturation
-ADOPTION_K = 2.5      # logistic growth rate (5x smartphone)
-ADOPTION_MIDPOINT = 4.2  # years since ChatGPT launch (Nov 2022)
+ADOPTION_TAM = 1000.0  # million paid users at saturation (1B global knowledge workers)
+ADOPTION_K = 2.5        # logistic growth rate (5x smartphone)
+ADOPTION_MIDPOINT = 4.48  # years since ChatGPT launch, calibrated to 80M at t=3.5
 
 
 def compute_paid_users_from_adoption(years_since_launch: float) -> float:

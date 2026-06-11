@@ -400,14 +400,16 @@ MARKET_PARAMS: list[Parameter] = [
         step=0.25,
         unit="years since ChatGPT",
         rationale=(
-            "Logistic S-curve for paid AI user adoption, calibrated to smartphone adoption "
-            "compressed 5×. TAM = 500M paid users (global knowledge workers). k = 2.5, "
-            "midpoint at 4.2 years. Current (t=3.5, mid-2026): ~80M paid. Projects to 200M by "
-            "end of 2026, 450M by 2027, plateau at 500M by 2028. GPU deployment scales "
-            "proportionally with paid user count (not all 10M GPUs deployed upfront)."
+            "Logistic S-curve for paid AI user adoption, compressed 5× vs smartphone adoption. "
+            "TAM = 1B paid users (global knowledge workers per Stanford HAI 2026 AI Index). "
+            "k = 2.5, midpoint at 4.48 years, calibrated to ~80M at t=3.5 (current). Projects "
+            "to 512M by mid-2027, 786M by 2028, near saturation at 1B by 2029. GPU deployment "
+            "scales proportionally with paid user count (not all 10M GPUs deployed upfront)."
         ),
-        citations=[],
-    ),
+        citations=[
+            ("Stanford HAI — 2026 AI Index Report",
+             "https://hai.stanford.edu/ai-index/2026-ai-index-report"),
+        ],
     Parameter(
         key="usage_hours_per_day",
         label="Usage Hours per Day",
