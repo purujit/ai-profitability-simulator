@@ -38,7 +38,7 @@ with st.sidebar:
                     help=p.rationale,
                     key=f"be_{p.key}",
                 )
-    if st.button("Restore Baseline Defaults", use_container_width=True):
+    if st.button("Restore Baseline Defaults", width="stretch"):
         for p in ALL_PARAMS:
             st.session_state.pop(f"be_{p.key}", None)
         st.rerun()

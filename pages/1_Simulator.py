@@ -74,9 +74,9 @@ with st.sidebar:
     st.header("Presets")
     pcol1, pcol2 = st.columns(2)
     selected_preset = None
-    if pcol1.button("OP's Assumptions", use_container_width=True, help="u/ksjdragon's original lenient baseline: no free users, no cooling costs, $0.118/kWh"):
+    if pcol1.button("OP's Assumptions", width="stretch", help="u/ksjdragon's original lenient baseline: no free users, no cooling costs, $0.118/kWh"):
         selected_preset = "OP's Lenient Assumptions"
-    if pcol2.button("My Assumptions", use_container_width=True, help="Updated baseline with current hardware, cost, pricing, and adoption assumptions"):
+    if pcol2.button("My Assumptions", width="stretch", help="Updated baseline with current hardware, cost, pricing, and adoption assumptions"):
         selected_preset = "My Assumptions"
 
     st.divider()
@@ -192,7 +192,7 @@ col_left, col_right = st.columns([1, 1])
 with col_left:
     st.subheader("Cost Breakdown per GPU-Hour")
     pie_fig = cost_breakdown_pie(gpu_breakdown, dc_breakdown, elec_breakdown)
-    st.plotly_chart(pie_fig, use_container_width=True)
+    st.plotly_chart(pie_fig, width="stretch")
 
     st.caption(
         f"GPU: ${gpu_breakdown:.2f}/hr ({gpu_breakdown/gpu_hourly_cost*100:.1f}%)  |  "
@@ -217,7 +217,7 @@ with col_right:
         total_concurrent,
         results["cost_per_mt"],
     )
-    st.plotly_chart(cost_curve, use_container_width=True)
+    st.plotly_chart(cost_curve, width="stretch")
 
 if t is not None:
     st.divider()
@@ -242,7 +242,7 @@ if t is not None:
     margin_fig = margin_over_time(t_range, np.array(margins), np.array(concs),
                                    np.array(users), np.array(gpus), t,
                                    results["profit_margin_pct"])
-    st.plotly_chart(margin_fig, use_container_width=True)
+    st.plotly_chart(margin_fig, width="stretch")
 
 st.divider()
 
@@ -257,7 +257,7 @@ with col_bar:
         gpu_hourly_cost,
         results["revenue_per_gpu_hour"],
     )
-    st.plotly_chart(bar_fig, use_container_width=True)
+    st.plotly_chart(bar_fig, width="stretch")
 
 with col_detail:
     st.subheader("Detailed Metrics")
