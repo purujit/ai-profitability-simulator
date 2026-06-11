@@ -31,7 +31,7 @@ with st.sidebar:
                     step=float(p.step),
                     key=f"sens_{p.key}",
                 )
-    if st.button("Restore Baseline Defaults", width="stretch"):
+    if st.button("Restore Baseline Defaults", use_container_width=True):
         for p in ALL_PARAMS:
             st.session_state.pop(f"sens_{p.key}", None)
         st.rerun()
@@ -127,7 +127,7 @@ for key in perturbable_keys:
 st.subheader("Tornado Chart")
 st.caption(f"Each bar shows the profit change from a {delta_pct}% one-variable perturbation. Colors indicate lower vs higher input value, not favorable vs unfavorable direction.")
 tornado_fig = sensitivity_tornado(base_profit, param_deltas)
-st.plotly_chart(tornado_fig, width="stretch")
+st.plotly_chart(tornado_fig, use_container_width=True)
 
 st.divider()
 
@@ -199,7 +199,7 @@ for name, sd in scenario_defs.items():
     scenario_results[name] = run_scenario(c)
 
 table_fig = scenario_comparison_table(scenario_results)
-st.plotly_chart(table_fig, width="stretch")
+st.plotly_chart(table_fig, use_container_width=True)
 
 for name, sd in scenario_defs.items():
     st.caption(f"**{name}**: {sd['label']}  —  {'; '.join(f'{k}={v}' for k,v in sd['overrides'].items())}")

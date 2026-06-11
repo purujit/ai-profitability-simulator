@@ -106,7 +106,7 @@ for p in ALL_PARAMS:
         "Sources": refs,
     })
 
-st.dataframe(ref_data, width="stretch", hide_index=True)
+st.dataframe(ref_data, use_container_width=True, hide_index=True)
 
 st.divider()
 
