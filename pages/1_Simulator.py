@@ -26,6 +26,7 @@ PRESETS = {
         "bonus_depreciation_pct": 0.0,
         "usage_hours_per_day": 8.0,
         "tps_calibration_multiplier": 1.0,
+        "total_gpus_millions": 4.45,
     },
     "My Assumptions": {
         "pue": 1.1,
@@ -39,13 +40,14 @@ PRESETS = {
         "dc_building_share_pct": 30.0,
         "total_parameters_b": 1600,
         "moe_active_ratio": 3.1,
-        "total_gpus_millions": 10.0,
         "free_paid_ratio": 0.3375,
         "usage_hours_per_day": 8.0,
         "blended_price_per_mt": 0.20,
         "adoption_years_since_launch": 3.5,
-        "gpu_deployment_lead_years": 1.5,
         "tps_calibration_multiplier": 1.44,
+        "gpu_saturation_millions": 25.0,
+        "gpu_deployment_midpoint": 4.13,
+        "gpu_deployment_growth_rate": 2.0,
     },
 }
 
@@ -100,12 +102,12 @@ with st.sidebar:
 
 config = {p.key: vals[p.key] for p in ALL_PARAMS}
 
-if config.get("adoption_years_since_launch") is not None:
-    from src.engine import compute_paid_users_from_adoption
-    lead = config.get("gpu_deployment_lead_years", 0.0)
-    projected_year = config["adoption_years_since_launch"] + lead
-    derived_paid = compute_paid_users_from_adoption(projected_year)
-    config["paid_users_millions"] = derived_paid
+t = config.get("adoption_years_since_launch")
+if t is not None:
+    from src.engine import compute_paid_users_from_adoption, compute_gpus_from_deployment
+    config["paid_users_millions"] = compute_paid_users_from_adoption(t)
+    if config.get("gpu_saturation_millions") is not None:
+        config["total_gpus_millions"] = compute_gpus_from_deployment(t)
 
 gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_price_per_unit"],

@@ -338,18 +338,61 @@ MARKET_PARAMS: list[Parameter] = [
         step=0.05,
         unit="M",
         rationale=(
-            "Jensen Huang disclosed 4M Hopper GPUs ($100B revenue) and 3M Blackwell GPUs "
-            "(6M dies ÷ 2) shipped through October 2025 (Epoch AI, Feb 2026). ~2.5M Hoppers "
-            "still deployed × 0.4 B200-eq (memory bandwidth ratio) = 1M B200-eq. ~4.5M "
-            "Blackwells shipped through mid-2026 (NVIDIA FY2026 DC revenue $193.7B). "
-            "Total: ~5.5M B200-equivalent GPUs deployed. OP used 4.45M based on 2024 data."
+            "Used as static value when deployment curve is off. Replaced by the GPU Deployment "
+            "Curve below when GPU saturation is set. Currently ~5.5M B200-eq deployed (Jensen "
+            "Huang Oct 2025 disclosure: 4M Hopper + 3M Blackwell GPUs shipped — Epoch AI)."
         ),
         citations=[
-            ("Epoch AI — AI Chip Sales Methodology: NVIDIA GPU Counts (Feb 2026)",
+            ("Epoch AI — AI Chip Sales Methodology (Feb 2026)",
              "https://epoch.ai/data/ai-chip-sales-documentation/methodology"),
-            ("NVIDIA Q4 FY2026 Earnings — Record $68.1B Quarter (Feb 2026)",
-             "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-Financial-Results-for-Fourth-Quarter-and-Fiscal-2026/default.aspx"),
         ],
+    ),
+    Parameter(
+        key="gpu_saturation_millions",
+        label="GPU Saturation (Total Planned Fleet)",
+        default=25.0,
+        min_val=1.0,
+        max_val=100.0,
+        step=1.0,
+        unit="M GPUs",
+        rationale=(
+            "Total GPU fleet at DC buildout saturation. 600 GPUs/MW (NVL72: 72 GPUs / 120kW). "
+            "Global AI DC power heading to ~40-50 GW by 2030 (EPRI, Morgan Stanley, Brookings). "
+            "25M GPUs = ~42 GW DC capacity. Saturation expected around t=7-8 years."
+        ),
+        citations=[
+            ("EPRI — Powering Intelligence 2026",
+             "https://powering-intelligence.epri.com/executive-summary.html"),
+        ],
+    ),
+    Parameter(
+        key="gpu_deployment_midpoint",
+        label="GPU Deployment Midpoint",
+        default=4.13,
+        min_val=1.0,
+        max_val=8.0,
+        step=0.1,
+        unit="years since ChatGPT",
+        rationale=(
+            "When half the planned GPU fleet is deployed. Calibrated to ~5.5M deployed at "
+            "t=3.5 (Jensen Huang's disclosed shipments). At t=4.13: 12.5M GPUs deployed. "
+            "At t=7.0: ~24.7M (approaching 25M saturation)."
+        ),
+        citations=[],
+    ),
+    Parameter(
+        key="gpu_deployment_growth_rate",
+        label="GPU Deployment Growth Rate",
+        default=2.0,
+        min_val=0.5,
+        max_val=5.0,
+        step=0.1,
+        unit="k",
+        rationale=(
+            "Logistic growth rate for GPU deployment. Slightly slower than user adoption (k=2.5) "
+            "due to physical construction constraints. Higher k = faster ramp to saturation."
+        ),
+        citations=[],
     ),
     Parameter(
         key="paid_users_millions",
@@ -410,23 +453,6 @@ MARKET_PARAMS: list[Parameter] = [
             ("Stanford HAI — 2026 AI Index Report",
              "https://hai.stanford.edu/ai-index/2026-ai-index-report"),
         ],
-    ),
-    Parameter(
-        key="gpu_deployment_lead_years",
-        label="GPU Deployment Lead Time",
-        default=1.5,
-        min_val=0.0,
-        max_val=4.0,
-        step=0.25,
-        unit="years ahead",
-        rationale=(
-            "BigTech deploys GPU capacity ahead of projected demand. Profitability should be "
-            "computed at the user count projected for adoption_years + lead_years, not at "
-            "today's user count. Default 1.5 years: GPUs deployed today target the user "
-            "base expected 18 months out. At t=3.5 + 1.5 = t=5.0, the curve projects ~786M "
-            "paid users — the market the currently deployed 5.5M GPU fleet is built for."
-        ),
-        citations=[],
     ),
     Parameter(
         key="usage_hours_per_day",

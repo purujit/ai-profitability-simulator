@@ -18,6 +18,16 @@ def compute_paid_users_from_adoption(years_since_launch: float) -> float:
     return ADOPTION_TAM / (1.0 + np.exp(-ADOPTION_K * (years_since_launch - ADOPTION_MIDPOINT)))
 
 
+GPU_SATURATION_M = 25.0  # million GPUs at full DC buildout
+GPU_K = 2.0               # deployment growth rate (slightly slower than adoption, physical constraints)
+GPU_MIDPOINT = 4.13       # calibrated to hit 5.5M at t=3.5 (Jensen Huang Oct 2025 disclosure)
+
+
+def compute_gpus_from_deployment(years_since_launch: float) -> float:
+    """Logistic S-curve for GPU deployment (DC buildout)."""
+    return GPU_SATURATION_M / (1.0 + np.exp(-GPU_K * (years_since_launch - GPU_MIDPOINT)))
+
+
 def compute_gpu_hourly_cost(
     gpu_price_per_unit: float,
     gpu_amortization_years: float,
