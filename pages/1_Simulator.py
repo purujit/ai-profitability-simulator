@@ -74,10 +74,23 @@ with st.sidebar:
     st.header("Presets")
     pcol1, pcol2 = st.columns(2)
     selected_preset = None
-    if pcol1.button("OP's Assumptions", width="stretch", help="u/ksjdragon's original lenient baseline: no free users, no cooling costs, $0.118/kWh"):
+    active_preset = st.session_state.get("_active_preset")
+    if pcol1.button(
+        "OP's Assumptions",
+        width="stretch",
+        type="primary" if active_preset == "OP's Lenient Assumptions" else "secondary",
+        help="u/ksjdragon's original lenient baseline: no free users, no cooling costs, $0.118/kWh",
+    ):
         selected_preset = "OP's Lenient Assumptions"
-    if pcol2.button("My Assumptions", width="stretch", help="Updated baseline with current hardware, cost, pricing, and adoption assumptions"):
+    if pcol2.button(
+        "My Assumptions",
+        width="stretch",
+        type="primary" if active_preset == "My Assumptions" else "secondary",
+        help="Updated baseline with current hardware, cost, pricing, and adoption assumptions",
+    ):
         selected_preset = "My Assumptions"
+    if active_preset:
+        st.caption(f"Selected: {active_preset}")
 
     st.divider()
     st.header("Parameters")
@@ -87,6 +100,7 @@ with st.sidebar:
         overrides = PRESETS[selected_preset]
         for k, v in overrides.items():
             st.session_state[k] = v
+        st.session_state["_active_preset"] = selected_preset
         st.rerun()
 
     vals = {}
@@ -112,6 +126,13 @@ with st.sidebar:
                 )
                 if p.unit and p.unit != "ratio" and p.unit != ":1":
                     st.caption(f"{p.unit}")
+
+    active_preset = st.session_state.get("_active_preset")
+    if active_preset:
+        preset_vals = PRESETS[active_preset]
+        if any(vals.get(k) != v for k, v in preset_vals.items() if k in vals):
+            st.session_state["_active_preset"] = None
+            st.rerun()
 
 config = apply_market_curves({p.key: vals[p.key] for p in ALL_PARAMS})
 t = config.get("adoption_years_since_launch")
