@@ -116,7 +116,7 @@ for key in perturbable_keys:
     param_deltas.append((perturbable_labels[key], profit_lo, profit_hi))
 
 st.subheader("Tornado Chart")
-st.caption(f"Each bar shows the profit change from a {delta_pct}% one-variable perturbation. Colors indicate lower vs higher input value, not favorable vs unfavorable direction.")
+st.caption(f"Each row shows profit change from a {delta_pct}% one-variable perturbation. Blue = lower input value; orange = higher input value. Right of zero improves profit.")
 tornado_fig = sensitivity_tornado(base_profit, param_deltas)
 st.plotly_chart(tornado_fig, width="stretch")
 

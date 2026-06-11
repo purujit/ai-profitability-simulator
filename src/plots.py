@@ -153,31 +153,47 @@ def sensitivity_tornado(
     high_deltas = [p[2] - base_profit for p in param_deltas][::-1]
 
     fig = go.Figure()
+
+    segment_x = []
+    segment_y = []
+    for label, low, high in zip(labels, low_deltas, high_deltas):
+        segment_x.extend([low, high, None])
+        segment_y.extend([label, label, None])
     fig.add_trace(
-        go.Bar(
-            y=labels,
-            x=low_deltas,
-            orientation="h",
-            name="- perturbation",
-            marker=dict(color="#e74c3c", line=dict(color="#1a1c23", width=1)),
-            hovertemplate="%{y}: $%{x:.2f}<extra></extra>",
+        go.Scatter(
+            y=segment_y,
+            x=segment_x,
+            mode="lines",
+            name="Sensitivity range",
+            line=dict(color="#777", width=4),
+            hoverinfo="skip",
+            showlegend=False,
         )
     )
     fig.add_trace(
-        go.Bar(
+        go.Scatter(
+            y=labels,
+            x=low_deltas,
+            mode="markers",
+            name="Lower value",
+            marker=dict(color="#3498db", size=10, symbol="circle"),
+            hovertemplate="%{y}<br>Lower value change: $%{x:+.2f}/GPU-hr<extra></extra>",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
             y=labels,
             x=high_deltas,
-            orientation="h",
-            name="+ perturbation",
-            marker=dict(color="#2ecc71", line=dict(color="#1a1c23", width=1)),
-            hovertemplate="%{y}: $%{x:.2f}<extra></extra>",
+            mode="markers",
+            name="Higher value",
+            marker=dict(color="#f39c12", size=10, symbol="diamond"),
+            hovertemplate="%{y}<br>Higher value change: $%{x:+.2f}/GPU-hr<extra></extra>",
         )
     )
 
     fig.add_vline(x=0, line_dash="dash", line_color="#888", line_width=1)
 
     fig.update_layout(
-        barmode="relative",
         margin=dict(t=10, b=10, l=10, r=10),
         height=450,
         paper_bgcolor="rgba(0,0,0,0)",
