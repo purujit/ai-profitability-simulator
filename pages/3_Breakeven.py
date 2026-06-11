@@ -13,7 +13,7 @@ from src.engine import (
     solve_breakeven_users,
 )
 from src.tps_models import compute_tps, TPS_MODELS
-from src.utils import fmt_currency, fmt_compact, slider_value_format
+from src.utils import fmt_currency, fmt_compact, should_use_compact_number_input, slider_value_format
 
 st.title("Breakeven Solver")
 st.caption("Find the conditions required for AI inference to be profitable.")
@@ -29,16 +29,27 @@ with st.sidebar:
                     min_v, max_v, step_v, def_v = int(p.min_val), int(p.max_val), int(p.step), int(p.default)
                 else:
                     min_v, max_v, step_v, def_v = float(p.min_val), float(p.max_val), float(p.step), float(p.default)
-                vals[p.key] = st.slider(
-                    p.label,
-                    min_value=min_v,
-                    max_value=max_v,
-                    value=def_v,
-                    step=step_v,
-                    help=p.rationale,
-                    key=f"be_{p.key}",
-                    format=slider_value_format(p.unit),
-                )
+                if should_use_compact_number_input(p.unit):
+                    vals[p.key] = st.number_input(
+                        p.label,
+                        min_value=min_v,
+                        max_value=max_v,
+                        value=def_v,
+                        step=step_v,
+                        help=p.rationale,
+                        key=f"be_{p.key}",
+                    )
+                else:
+                    vals[p.key] = st.slider(
+                        p.label,
+                        min_value=min_v,
+                        max_value=max_v,
+                        value=def_v,
+                        step=step_v,
+                        help=p.rationale,
+                        key=f"be_{p.key}",
+                        format=slider_value_format(p.unit),
+                    )
     if st.button("Restore Baseline Defaults", width="stretch"):
         for p in ALL_PARAMS:
             st.session_state.pop(f"be_{p.key}", None)

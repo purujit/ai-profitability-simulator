@@ -54,6 +54,11 @@ def slider_value_format(unit: str) -> str | None:
     return formats.get(unit)
 
 
+def should_use_compact_number_input(unit: str) -> bool:
+    """Return true for parameters whose slider readout becomes unreadably long."""
+    return unit in {"$", "$/MW"}
+
+
 def color_for_profit(profit: float) -> str:
     """Return green for profit, red for loss."""
     return "#2ecc71" if profit >= 0 else "#e74c3c"
