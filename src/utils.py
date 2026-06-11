@@ -30,45 +30,6 @@ def fmt_compact(val: float, decimals: int = 2) -> str:
     return f"{val:,.{decimals}f}"
 
 
-def fmt_param_value(val: float, unit: str) -> str:
-    """Format a parameter value for compact display in sidebar controls."""
-    if unit == "$":
-        return fmt_currency(val)
-    if unit == "$/MW":
-        return f"{fmt_currency(val)}/MW"
-    if unit == "$/kWh":
-        return f"${val:.3f}/kWh"
-    if unit == "$/MT":
-        return f"${val:.2f}/MT"
-    if unit == "%":
-        return f"{val:.1f}%"
-    if unit == "kW":
-        return f"{val:.2f} kW"
-    if unit == "years":
-        return f"{val:g} yr"
-    if unit == "tokens/sec":
-        return f"{val:,.0f} tok/s"
-    if unit == "B":
-        return f"{val:,.0f}B"
-    if unit == "M GPUs":
-        return f"{val:g}M GPUs"
-    if unit == "M paid users":
-        return f"{val:,.0f}M paid"
-    if unit == "hrs/day":
-        return f"{val:g} hr/day"
-    if unit == "×":
-        return f"{val:.2f}x"
-    if unit == ":1":
-        return f"{val:g}:1"
-    if unit == "k":
-        return f"{val:g}"
-    if unit == "years since ChatGPT":
-        return f"{val:g} yr since launch"
-    if unit == "ratio":
-        return f"{val:g}"
-    return f"{val:g} {unit}".strip()
-
-
 def slider_value_format(unit: str) -> str | None:
     """Return a Streamlit slider printf format string for a parameter unit."""
     formats = {

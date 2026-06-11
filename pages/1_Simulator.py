@@ -15,7 +15,7 @@ from src.engine import (
 )
 from src.tps_models import compute_tps, TPS_MODELS
 from src.plots import cost_breakdown_pie, cost_vs_concurrency_curve, revenue_vs_cost_bar, margin_over_time
-from src.utils import fmt_currency, fmt_compact, color_for_profit, compute_cost_breakdown, fmt_param_value, slider_value_format
+from src.utils import fmt_currency, fmt_compact, color_for_profit, compute_cost_breakdown, slider_value_format
 
 PRESETS = {
     "OP's Lenient Assumptions": {
@@ -116,7 +116,7 @@ with st.sidebar:
                     current_val = st.session_state.get(p.key, p.default)
                     current_val = float(current_val)
                 vals[p.key] = st.slider(
-                    f"{p.label} ({fmt_param_value(current_val, p.unit)})",
+                    p.label,
                     min_value=min_v,
                     max_value=max_v,
                     value=current_val,

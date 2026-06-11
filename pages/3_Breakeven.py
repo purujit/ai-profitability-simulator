@@ -13,7 +13,7 @@ from src.engine import (
     solve_breakeven_users,
 )
 from src.tps_models import compute_tps, TPS_MODELS
-from src.utils import fmt_currency, fmt_compact, fmt_param_value, slider_value_format
+from src.utils import fmt_currency, fmt_compact, slider_value_format
 
 st.title("Breakeven Solver")
 st.caption("Find the conditions required for AI inference to be profitable.")
@@ -30,7 +30,7 @@ with st.sidebar:
                 else:
                     min_v, max_v, step_v, def_v = float(p.min_val), float(p.max_val), float(p.step), float(p.default)
                 vals[p.key] = st.slider(
-                    f"{p.label} ({fmt_param_value(def_v, p.unit)})",
+                    p.label,
                     min_value=min_v,
                     max_value=max_v,
                     value=def_v,
