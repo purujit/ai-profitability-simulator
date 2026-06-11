@@ -332,23 +332,23 @@ MARKET_PARAMS: list[Parameter] = [
     Parameter(
         key="total_gpus_millions",
         label="Total GPUs Deployed",
-        default=10.0,
+        default=5.5,
         min_val=0.1,
         max_val=50.0,
         step=0.05,
         unit="M",
         rationale=(
-            "NVIDIA shipped ~5.2M Blackwell GPUs in 2025 + 1.8M in 2026 = ~7M cumulative. "
-            "Top 4 CSPs ordered 3.6M units; AWS 1M; Meta ordered millions (CNBC Feb 2026). "
-            "Adding Hopper (still deployed) and early Rubin, total AI GPU base is ~10M+. "
-            "FY2026 revenue $215.9B, Q4 alone $68.1B (NVIDIA Feb 2026). $119B supply commitments "
-            "from OpenAI, Anthropic, Meta (24/7 Wall St, Jun 2026). OP used 4.45M based on 2024 data."
+            "Jensen Huang disclosed 4M Hopper GPUs ($100B revenue) and 3M Blackwell GPUs "
+            "(6M dies ÷ 2) shipped through October 2025 (Epoch AI, Feb 2026). ~2.5M Hoppers "
+            "still deployed × 0.4 B200-eq (memory bandwidth ratio) = 1M B200-eq. ~4.5M "
+            "Blackwells shipped through mid-2026 (NVIDIA FY2026 DC revenue $193.7B). "
+            "Total: ~5.5M B200-equivalent GPUs deployed. OP used 4.45M based on 2024 data."
         ),
         citations=[
+            ("Epoch AI — AI Chip Sales Methodology: NVIDIA GPU Counts (Feb 2026)",
+             "https://epoch.ai/data/ai-chip-sales-documentation/methodology"),
             ("NVIDIA Q4 FY2026 Earnings — Record $68.1B Quarter (Feb 2026)",
              "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-Financial-Results-for-Fourth-Quarter-and-Fiscal-2026/default.aspx"),
-            ("CNBC — Meta Expands NVIDIA Deal for Millions of AI Chips (Feb 2026)",
-             "https://www.cnbc.com/2026/02/17/meta-nvidia-deal-ai-data-center-chips.html"),
         ],
     ),
     Parameter(
