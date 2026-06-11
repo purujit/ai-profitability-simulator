@@ -501,11 +501,6 @@ MARKET_PARAMS: list[Parameter] = [
              "https://hai.stanford.edu/ai-index/2026-ai-index-report"),
         ],
     ),
-        citations=[
-            ("Stanford HAI — 2026 AI Index Report",
-             "https://hai.stanford.edu/ai-index/2026-ai-index-report"),
-        ],
-    ),
     Parameter(
         key="usage_hours_per_day",
         label="Usage Hours per Day",
