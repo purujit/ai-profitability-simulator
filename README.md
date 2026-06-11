@@ -39,7 +39,7 @@ The key insight: **costs are dominated by capital investment, not electricity.**
 
 ## Pages
 
-- **Simulator** — Live dashboard with 18 sliders, cost breakdown pie, cost-vs-concurrency curve, revenue-vs-cost bars
+- **Simulator** — Live dashboard with adjustable assumptions, cost breakdown pie, cost-vs-concurrency curve, revenue-vs-cost bars
 - **Sensitivity** — Tornado chart showing which parameters move profit most, plus 4 scenario presets
 - **Breakeven Solver** — Solve for the price, user count, GPU price, or electricity rate needed to break even
 - **Methodology** — Full equation derivations, reference table with citations, attribution to the original post

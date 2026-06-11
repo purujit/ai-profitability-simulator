@@ -97,18 +97,16 @@ def cost_vs_concurrency_curve(
 def revenue_vs_cost_bar(
     cost_per_mt: float,
     blended_price_per_mt: float,
+    effective_revenue_per_mt: float,
     gpu_hourly_cost: float,
     revenue_per_gpu_hour: float,
-    profit_per_gpu_hour: float,
 ) -> go.Figure:
     """Side-by-side bar chart comparing costs and revenue."""
     fig = go.Figure()
 
     categories = ["Per\nGPU-Hour", "Per\nMillion Tokens"]
-    revenue_vals = [revenue_per_gpu_hour, blended_price_per_mt]
+    revenue_vals = [revenue_per_gpu_hour, effective_revenue_per_mt]
     cost_vals = [gpu_hourly_cost, cost_per_mt]
-    profit_vals = [max(0, profit_per_gpu_hour), max(0, blended_price_per_mt - cost_per_mt)]
-    loss_vals = [max(0, -profit_per_gpu_hour), max(0, cost_per_mt - blended_price_per_mt)]
 
     fig.add_trace(
         go.Bar(
@@ -160,7 +158,7 @@ def sensitivity_tornado(
             y=labels,
             x=low_deltas,
             orientation="h",
-            name="-20% (less favorable)",
+            name="- perturbation",
             marker=dict(color="#e74c3c", line=dict(color="#1a1c23", width=1)),
             hovertemplate="%{y}: $%{x:.2f}<extra></extra>",
         )
@@ -170,14 +168,13 @@ def sensitivity_tornado(
             y=labels,
             x=high_deltas,
             orientation="h",
-            name="+20% (more favorable)",
+            name="+ perturbation",
             marker=dict(color="#2ecc71", line=dict(color="#1a1c23", width=1)),
             hovertemplate="%{y}: $%{x:.2f}<extra></extra>",
         )
     )
 
     fig.add_vline(x=0, line_dash="dash", line_color="#888", line_width=1)
-    fig.add_vline(x=base_profit, line_dash="dot", line_color="#f39c12", line_width=1.5)
 
     fig.update_layout(
         barmode="relative",
@@ -187,7 +184,7 @@ def sensitivity_tornado(
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#e0e0e0", size=11),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
-        xaxis=dict(title="Change in Profit per GPU-Hour ($)", gridcolor="#333"),
+        xaxis=dict(title="Change in Profit per GPU-Hour vs Baseline ($)", gridcolor="#333"),
     )
     return fig
 

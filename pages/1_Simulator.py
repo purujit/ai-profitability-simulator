@@ -5,8 +5,11 @@ import numpy as np
 
 from src.defaults import ALL_PARAMS, PARAM_GROUPS, get_defaults
 from src.engine import (
+    apply_market_curves,
     compute_gpu_hourly_cost,
     compute_concurrency,
+    compute_gpus_from_deployment,
+    compute_paid_users_from_adoption,
     compute_profitability,
     compute_industry_annual,
 )
@@ -71,9 +74,9 @@ with st.sidebar:
     st.header("Presets")
     pcol1, pcol2 = st.columns(2)
     selected_preset = None
-    if pcol1.button("OP's Assumptions", use_container_width=True, help="u/ksjdragon's original lenient baseline: no free users, no cooling costs, $0.118/kWh"):
+    if pcol1.button("OP's Assumptions", width="stretch", help="u/ksjdragon's original lenient baseline: no free users, no cooling costs, $0.118/kWh"):
         selected_preset = "OP's Lenient Assumptions"
-    if pcol2.button("My Assumptions", use_container_width=True, help="Your preset (currently matching OP's baseline)"):
+    if pcol2.button("My Assumptions", width="stretch", help="Updated baseline with current hardware, cost, pricing, and adoption assumptions"):
         selected_preset = "My Assumptions"
 
     st.divider()
@@ -110,19 +113,14 @@ with st.sidebar:
                 if p.unit and p.unit != "ratio" and p.unit != ":1":
                     st.caption(f"{p.unit}")
 
-config = {p.key: vals[p.key] for p in ALL_PARAMS}
-
+config = apply_market_curves({p.key: vals[p.key] for p in ALL_PARAMS})
 t = config.get("adoption_years_since_launch")
-if t is not None:
-    from src.engine import compute_paid_users_from_adoption, compute_gpus_from_deployment
-    tam = config.get("adoption_tam_millions", 1000.0)
-    k_adopt = config.get("adoption_growth_rate", 2.5)
-    mp_adopt = config.get("adoption_midpoint_years", 4.48)
-    config["paid_users_millions"] = compute_paid_users_from_adoption(t, tam, k_adopt, mp_adopt)
-    saturation = config.get("gpu_saturation_millions", 25.0)
-    k_gpu = config.get("gpu_deployment_growth_rate", 2.0)
-    mp_gpu = config.get("gpu_deployment_midpoint", 4.265)
-    config["total_gpus_millions"] = compute_gpus_from_deployment(t, saturation, k_gpu, mp_gpu)
+tam = config.get("adoption_tam_millions", 1000.0)
+k_adopt = config.get("adoption_growth_rate", 2.5)
+mp_adopt = config.get("adoption_midpoint_years", 4.48)
+saturation = config.get("gpu_saturation_millions", 25.0)
+k_gpu = config.get("gpu_deployment_growth_rate", 2.0)
+mp_gpu = config.get("gpu_deployment_midpoint", 4.265)
 
 gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_price_per_unit"],
@@ -194,7 +192,7 @@ col_left, col_right = st.columns([1, 1])
 with col_left:
     st.subheader("Cost Breakdown per GPU-Hour")
     pie_fig = cost_breakdown_pie(gpu_breakdown, dc_breakdown, elec_breakdown)
-    st.plotly_chart(pie_fig, use_container_width=True)
+    st.plotly_chart(pie_fig, width="stretch")
 
     st.caption(
         f"GPU: ${gpu_breakdown:.2f}/hr ({gpu_breakdown/gpu_hourly_cost*100:.1f}%)  |  "
@@ -219,12 +217,11 @@ with col_right:
         total_concurrent,
         results["cost_per_mt"],
     )
-    st.plotly_chart(cost_curve, use_container_width=True)
+    st.plotly_chart(cost_curve, width="stretch")
 
 if t is not None:
     st.divider()
     st.subheader("Margin Over Time (Both S-Curves Advancing)")
-    from src.engine import compute_gpus_from_deployment
 
     t_range = np.linspace(1.0, 7.0, 50)
     margins = []
@@ -245,7 +242,7 @@ if t is not None:
     margin_fig = margin_over_time(t_range, np.array(margins), np.array(concs),
                                    np.array(users), np.array(gpus), t,
                                    results["profit_margin_pct"])
-    st.plotly_chart(margin_fig, use_container_width=True)
+    st.plotly_chart(margin_fig, width="stretch")
 
 st.divider()
 
@@ -256,11 +253,11 @@ with col_bar:
     bar_fig = revenue_vs_cost_bar(
         results["cost_per_mt"],
         config["blended_price_per_mt"],
+        config["blended_price_per_mt"] * results["paid_ratio"],
         gpu_hourly_cost,
         results["revenue_per_gpu_hour"],
-        results["profit_per_gpu_hour"],
     )
-    st.plotly_chart(bar_fig, use_container_width=True)
+    st.plotly_chart(bar_fig, width="stretch")
 
 with col_detail:
     st.subheader("Detailed Metrics")
@@ -281,5 +278,5 @@ with col_detail:
 st.divider()
 st.caption(
     "Model based on [u/ksjdragon's Reddit post](https://www.reddit.com/r/BetterOffline/comments/1tzwnhi/ai_profitability_is_mathematically_impossible/). "
-    "16 points of leniency were applied in the original analysis. Adjust parameters to explore real-world scenarios."
+    "14 points of leniency were applied in the original analysis. Adjust parameters to explore real-world scenarios."
 )

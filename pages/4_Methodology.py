@@ -13,7 +13,7 @@ This simulation is based on the model described by **u/ksjdragon** in their Redd
 
 > [**AI profitability is mathematically impossible under all technological advancements**](https://www.reddit.com/r/BetterOffline/comments/1tzwnhi/ai_profitability_is_mathematically_impossible/)
 
-The original analysis applies 16 points of deliberate leniency toward AI companies
+The original analysis applies 14 points of deliberate leniency toward AI companies
 and still concludes that inference cannot be profitable. This simulator lets you
 adjust those leniency assumptions and explore the parameter space yourself.
 """
@@ -24,20 +24,29 @@ st.header("Core Equations")
 st.subheader("1. GPU-Hourly Cost")
 st.latex(r"""
 \text{Cost}_\text{GPU/hr} =
-\frac{P_\text{GPU}}{Y_\text{GPU} \cdot 8766}
-+ \frac{C_\text{DC} / 1000}{Y_\text{DC} \cdot 8766} \cdot W
-+ W \cdot R \cdot \text{PUE}
+\frac{\text{Annualize}(P_\text{GPU} \cdot (1 - D_\text{bonus} \cdot T), r, Y_\text{GPU})}{8766}
++ \left[
+\frac{C_\text{DC}/1000 \cdot s_\text{building}}{20 \cdot 8766}
++ \frac{C_\text{DC}/1000 \cdot (1-s_\text{building})}{Y_\text{GPU} \cdot 8766}
+\right] \cdot W_\text{GPU}
++ W_\text{total} \cdot R \cdot \text{PUE}
 """)
 st.markdown(
     """
 Where:
 - $P_\\text{GPU}$ = GPU unit price ($)
+- $D_\\text{bonus}$ = first-year bonus depreciation share
+- $T$ = corporate tax rate used for the depreciation tax shield
+- $r$ = discount rate / cost of capital
 - $Y_\\text{GPU}$ = GPU amortization period (years)
 - $C_\\text{DC}$ = Data center CapEx ($/MW)
-- $Y_\\text{DC}$ = DC amortization period (years)
-- $W$ = Power draw per GPU (kW)
+- $s_\\text{building}$ = share of DC CapEx treated as long-lived building shell
+- $W_\\text{GPU}$ = GPU power draw used for IT load allocation
+- $W_\\text{total}$ = GPU power draw plus CPU overhead used for electricity
 - $R$ = Electricity rate ($/kWh)
 - $\\text{PUE}$ = Power usage effectiveness (cooling overhead)
+
+When the building share is 100%, the model uses the OP-compatible single DC amortization period instead of the split above.
 """
 )
 
@@ -97,7 +106,7 @@ for p in ALL_PARAMS:
         "Sources": refs,
     })
 
-st.dataframe(ref_data, use_container_width=True, hide_index=True)
+st.dataframe(ref_data, width="stretch", hide_index=True)
 
 st.divider()
 
@@ -131,6 +140,8 @@ st.markdown(
 
 9. **Wikipedia — Blackwell (microarchitecture)** — Technical specifications for B200/B100.
    [wikipedia.org](https://en.wikipedia.org/wiki/Blackwell_(microarchitecture))
+
+Source quality varies by parameter. Hardware specifications, PUE, electricity rates, and tax references are anchored to operator or government sources where available. Model sizes, market pricing blends, GPU fleet counts, and some future-looking data center build assumptions are industry estimates or third-party analyses, not audited primary data.
 """
 )
 

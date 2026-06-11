@@ -1,18 +1,16 @@
 """Sensitivity analysis — tornado chart, scenario comparison."""
 
 import streamlit as st
-import numpy as np
-import copy
 
 from src.defaults import ALL_PARAMS, PARAM_GROUPS, get_defaults
 from src.engine import (
+    apply_market_curves,
     compute_gpu_hourly_cost,
     compute_concurrency,
     compute_profitability,
 )
 from src.tps_models import compute_tps, TPS_MODELS
 from src.plots import sensitivity_tornado, scenario_comparison_table
-from src.utils import fmt_currency
 
 st.title("Sensitivity Analysis")
 st.caption("Understand which parameters have the greatest impact on profitability.")
@@ -33,10 +31,12 @@ with st.sidebar:
                     step=float(p.step),
                     key=f"sens_{p.key}",
                 )
-    if st.button("Restore OP's Defaults", use_container_width=True):
+    if st.button("Restore Baseline Defaults", width="stretch"):
+        for p in ALL_PARAMS:
+            st.session_state.pop(f"sens_{p.key}", None)
         st.rerun()
 
-config = dict(base_vals)
+config = apply_market_curves(base_vals)
 gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_price_per_unit"],
     config["gpu_amortization_years"],
@@ -87,6 +87,10 @@ perturbable_keys = [
 ]
 
 perturbable_labels = {p.key: p.label for p in ALL_PARAMS if p.key in perturbable_keys}
+perturbable_labels.update({
+    "paid_users_millions": "Paid Users (derived)",
+    "total_gpus_millions": "Total GPUs (derived)",
+})
 
 def run_scenario(vals_overrides):
     c = dict(config)
@@ -111,10 +115,6 @@ def run_scenario(vals_overrides):
 param_deltas = []
 for key in perturbable_keys:
     c_lo = dict(config)
-    factor = 1 - delta_pct / 100
-    if key in ("blended_price_per_mt", "paid_users_millions", "usage_hours_per_day",
-               "gpu_amortization_years", "dc_amortization_years", "moe_active_ratio"):
-        factor = 1 + delta_pct / 100
     c_lo[key] *= (1 - delta_pct / 100)
     profit_lo = run_scenario(c_lo)["profit_per_gpu_hour"]
 
@@ -125,8 +125,9 @@ for key in perturbable_keys:
     param_deltas.append((perturbable_labels[key], profit_lo, profit_hi))
 
 st.subheader("Tornado Chart")
+st.caption(f"Each bar shows the profit change from a {delta_pct}% one-variable perturbation. Colors indicate lower vs higher input value, not favorable vs unfavorable direction.")
 tornado_fig = sensitivity_tornado(base_profit, param_deltas)
-st.plotly_chart(tornado_fig, use_container_width=True)
+st.plotly_chart(tornado_fig, width="stretch")
 
 st.divider()
 
@@ -135,7 +136,25 @@ st.subheader("Scenario Comparison")
 scenario_defs = {
     "OP's Lenient": {
         "label": "OP's original generous assumptions",
-        "overrides": {},
+        "overrides": {
+            "pue": 1.0,
+            "electricity_rate": 0.1178,
+            "free_paid_ratio": 0.0,
+            "gpu_power_draw_kw": 1.2,
+            "gpu_price_per_unit": 38889,
+            "gpu_amortization_years": 3,
+            "discount_rate_pct": 0.0,
+            "bonus_depreciation_pct": 0.0,
+            "usage_hours_per_day": 8.0,
+            "tps_calibration_multiplier": 1.0,
+            "blended_price_per_mt": 5.00,
+            "dc_capex_per_mw": 9_000_000,
+            "dc_building_share_pct": 100.0,
+            "total_parameters_b": 4000,
+            "moe_active_ratio": 7.5,
+            "paid_users_millions": 80,
+            "total_gpus_millions": 4.45,
+        },
     },
     "Realistic": {
         "label": "Realistic amortization, cooling, user counts",
@@ -180,7 +199,7 @@ for name, sd in scenario_defs.items():
     scenario_results[name] = run_scenario(c)
 
 table_fig = scenario_comparison_table(scenario_results)
-st.plotly_chart(table_fig, use_container_width=True)
+st.plotly_chart(table_fig, width="stretch")
 
 for name, sd in scenario_defs.items():
     st.caption(f"**{name}**: {sd['label']}  —  {'; '.join(f'{k}={v}' for k,v in sd['overrides'].items())}")

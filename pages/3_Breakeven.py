@@ -5,6 +5,7 @@ import numpy as np
 
 from src.defaults import ALL_PARAMS, PARAM_GROUPS
 from src.engine import (
+    apply_market_curves,
     compute_gpu_hourly_cost,
     compute_concurrency,
     compute_profitability,
@@ -37,10 +38,12 @@ with st.sidebar:
                     help=p.rationale,
                     key=f"be_{p.key}",
                 )
-    if st.button("Restore OP's Lenient Defaults", use_container_width=True):
+    if st.button("Restore Baseline Defaults", width="stretch"):
+        for p in ALL_PARAMS:
+            st.session_state.pop(f"be_{p.key}", None)
         st.rerun()
 
-config = {p.key: vals[p.key] for p in ALL_PARAMS}
+config = apply_market_curves({p.key: vals[p.key] for p in ALL_PARAMS})
 
 gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_price_per_unit"],
@@ -145,6 +148,7 @@ elif solve_mode == "Required GPU price reduction":
             discount_rate_pct=config.get("discount_rate_pct", 0.0),
             bonus_depreciation_pct=config.get("bonus_depreciation_pct", 0.0),
             corporate_tax_rate=config.get("corporate_tax_rate", 21.0),
+            dc_building_share_pct=config.get("dc_building_share_pct"),
         )
         test_tps = compute_tps(total_concurrent, computed_params, tps_model, test_config)
         test_paid = paid_concurrent

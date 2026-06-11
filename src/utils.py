@@ -1,5 +1,7 @@
 """Utility helpers for the AI profitability simulator."""
 
+from src.engine import compute_gpu_hourly_cost_breakdown
+
 
 def fmt_currency(val: float) -> str:
     """Format a number as currency with appropriate scale."""
@@ -36,17 +38,16 @@ def color_for_profit(profit: float) -> str:
 def compute_cost_breakdown(gpu_hourly_cost: float, config: dict) -> tuple[float, float, float]:
     """Decompose total hourly cost into GPU, DC, and electricity components."""
     p = config
-    gpu_price = p["gpu_price_per_unit"]
-    amort_y = p["gpu_amortization_years"]
-    dc_capex = p["dc_capex_per_mw"]
-    dc_amort = p["dc_amortization_years"]
-    power = p["gpu_power_draw_kw"]
-    pue = p["pue"]
-    elec_rate = p["electricity_rate"]
-
-    hours_year = 365.25 * 24
-    gpu_hourly = gpu_price / (amort_y * hours_year)
-    dc_hourly = (dc_capex / 1000.0) / (dc_amort * hours_year) * power
-    elec_hourly = power * elec_rate * pue
-
-    return gpu_hourly, dc_hourly, elec_hourly
+    return compute_gpu_hourly_cost_breakdown(
+        p["gpu_price_per_unit"],
+        p["gpu_amortization_years"],
+        p["dc_capex_per_mw"],
+        p["dc_amortization_years"],
+        p["gpu_power_draw_kw"],
+        p["pue"],
+        p["electricity_rate"],
+        discount_rate_pct=p.get("discount_rate_pct", 0.0),
+        bonus_depreciation_pct=p.get("bonus_depreciation_pct", 0.0),
+        corporate_tax_rate=p.get("corporate_tax_rate", 21.0),
+        dc_building_share_pct=p.get("dc_building_share_pct"),
+    )

@@ -380,7 +380,7 @@ MARKET_PARAMS: list[Parameter] = [
     Parameter(
         key="free_paid_ratio",
         label="Free:Paid User Ratio",
-        default=18.0,
+        default=0.3375,
         min_val=0.0,
         max_val=50.0,
         step=0.1,

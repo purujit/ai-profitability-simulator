@@ -66,6 +66,37 @@ def compute_gpu_hourly_cost(
     Returns:
         float: $/GPU-hour.
     """
+    return sum(compute_gpu_hourly_cost_breakdown(
+        gpu_price_per_unit,
+        gpu_amortization_years,
+        dc_capex_per_mw,
+        dc_amortization_years,
+        gpu_power_draw_kw,
+        pue,
+        electricity_rate,
+        total_power_draw_kw=total_power_draw_kw,
+        discount_rate_pct=discount_rate_pct,
+        bonus_depreciation_pct=bonus_depreciation_pct,
+        corporate_tax_rate=corporate_tax_rate,
+        dc_building_share_pct=dc_building_share_pct,
+    ))
+
+
+def compute_gpu_hourly_cost_breakdown(
+    gpu_price_per_unit: float,
+    gpu_amortization_years: float,
+    dc_capex_per_mw: float,
+    dc_amortization_years: float,
+    gpu_power_draw_kw: float,
+    pue: float,
+    electricity_rate: float,
+    total_power_draw_kw: float | None = None,
+    discount_rate_pct: float = 0.0,
+    bonus_depreciation_pct: float = 0.0,
+    corporate_tax_rate: float = 21.0,
+    dc_building_share_pct: float | None = None,
+) -> tuple[float, float, float]:
+    """Return GPU, data-center, and electricity cost components per GPU-hour."""
     if total_power_draw_kw is None:
         total_power_draw_kw = gpu_power_draw_kw + 0.15
 
@@ -75,18 +106,15 @@ def compute_gpu_hourly_cost(
 
     r = discount_rate_pct / 100.0
     n = gpu_amortization_years
-
     if r == 0.0:
         annual_cost = effective_price / n
     else:
         factor = (1.0 + r) ** n
         annual_cost = effective_price * r * factor / (factor - 1.0)
-
     gpu_hourly = annual_cost / HOURS_PER_YEAR
 
     building_share = dc_building_share_pct / 100.0 if dc_building_share_pct is not None else 1.0
     electrical_share = 1.0 - building_share
-
     if building_share < 1.0 and building_share > 0.0:
         building_hourly = (dc_capex_per_mw / 1000.0) * building_share / (BUILDING_AMORT_YEARS * HOURS_PER_YEAR)
         electrical_hourly = (dc_capex_per_mw / 1000.0) * electrical_share / (gpu_amortization_years * HOURS_PER_YEAR)
@@ -96,8 +124,29 @@ def compute_gpu_hourly_cost(
     dc_hourly = dc_cost_per_kw_hour * gpu_power_draw_kw
 
     elec_hourly = total_power_draw_kw * electricity_rate * pue
+    return gpu_hourly, dc_hourly, elec_hourly
 
-    return gpu_hourly + dc_hourly + elec_hourly
+
+def apply_market_curves(config: dict) -> dict:
+    """Derive paid users and deployed GPUs from the adoption/deployment S-curves."""
+    c = dict(config)
+    t = c.get("adoption_years_since_launch")
+    if t is None:
+        return c
+
+    c["paid_users_millions"] = compute_paid_users_from_adoption(
+        t,
+        c.get("adoption_tam_millions", ADOPTION_TAM),
+        c.get("adoption_growth_rate", ADOPTION_K),
+        c.get("adoption_midpoint_years", ADOPTION_MIDPOINT),
+    )
+    c["total_gpus_millions"] = compute_gpus_from_deployment(
+        t,
+        c.get("gpu_saturation_millions", GPU_SATURATION_M),
+        c.get("gpu_deployment_growth_rate", GPU_K),
+        c.get("gpu_deployment_midpoint", GPU_MIDPOINT),
+    )
+    return c
 
 
 def compute_concurrency(
