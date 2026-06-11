@@ -11,7 +11,7 @@ from src.engine import (
     compute_industry_annual,
 )
 from src.tps_models import compute_tps, TPS_MODELS
-from src.plots import cost_breakdown_pie, cost_vs_concurrency_curve, revenue_vs_cost_bar
+from src.plots import cost_breakdown_pie, cost_vs_concurrency_curve, revenue_vs_cost_bar, margin_over_time
 from src.utils import fmt_currency, fmt_compact, color_for_profit, compute_cost_breakdown
 
 PRESETS = {
@@ -105,9 +105,15 @@ config = {p.key: vals[p.key] for p in ALL_PARAMS}
 t = config.get("adoption_years_since_launch")
 if t is not None:
     from src.engine import compute_paid_users_from_adoption, compute_gpus_from_deployment
-    config["paid_users_millions"] = compute_paid_users_from_adoption(t)
+    tam = config.get("adoption_tam_millions", 1000.0)
+    k_adopt = config.get("adoption_growth_rate", 2.5)
+    mp_adopt = config.get("adoption_midpoint_years", 4.48)
+    config["paid_users_millions"] = compute_paid_users_from_adoption(t, tam, k_adopt, mp_adopt)
     if config.get("gpu_saturation_millions") is not None:
-        config["total_gpus_millions"] = compute_gpus_from_deployment(t)
+        saturation = config.get("gpu_saturation_millions", 25.0)
+        k_gpu = config.get("gpu_deployment_growth_rate", 2.0)
+        mp_gpu = config.get("gpu_deployment_midpoint", 4.13)
+        config["total_gpus_millions"] = compute_gpus_from_deployment(t, saturation, k_gpu, mp_gpu)
 
 gpu_hourly_cost = compute_gpu_hourly_cost(
     config["gpu_price_per_unit"],
@@ -205,6 +211,32 @@ with col_right:
         results["cost_per_mt"],
     )
     st.plotly_chart(cost_curve, use_container_width=True)
+
+if t is not None:
+    st.divider()
+    st.subheader("Margin Over Time (Both S-Curves Advancing)")
+    from src.engine import compute_gpus_from_deployment
+
+    t_range = np.linspace(1.0, 7.0, 50)
+    margins = []
+    concs = []
+    users = []
+    gpus = []
+    for ti in t_range:
+        p = compute_paid_users_from_adoption(ti, tam, k_adopt, mp_adopt)
+        gp = compute_gpus_from_deployment(ti, saturation, k_gpu, mp_gpu)
+        tc2, pc2 = compute_concurrency(gp, p, config["free_paid_ratio"], config["usage_hours_per_day"])
+        tt2 = compute_tps(tc2, computed_params, tps_model, config)
+        r2 = compute_profitability(gpu_hourly_cost, tt2, tc2, pc2, config["blended_price_per_mt"])
+        margins.append(r2["profit_margin_pct"])
+        concs.append(tc2)
+        users.append(p)
+        gpus.append(gp)
+
+    margin_fig = margin_over_time(t_range, np.array(margins), np.array(concs),
+                                   np.array(users), np.array(gpus), t,
+                                   results["profit_margin_pct"])
+    st.plotly_chart(margin_fig, use_container_width=True)
 
 st.divider()
 

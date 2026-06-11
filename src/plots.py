@@ -249,3 +249,57 @@ def scenario_comparison_table(scenarios: dict[str, dict]) -> go.Figure:
         paper_bgcolor="rgba(0,0,0,0)",
     )
     return fig
+
+
+def margin_over_time(
+    t_range: np.ndarray,
+    margins: np.ndarray,
+    concurrents: np.ndarray,
+    paid_users: np.ndarray,
+    gpu_counts: np.ndarray,
+    current_t: float,
+    current_margin: float,
+) -> go.Figure:
+    """Profit margin over time as both S-curves advance."""
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=t_range,
+            y=margins,
+            mode="lines",
+            name="Profit Margin",
+            line=dict(color="#2ecc71", width=2.5),
+            fill="tozeroy",
+            fillcolor="rgba(46,204,113,0.1)",
+            hovertemplate="t=%{x:.1f}yr<br>Margin: %{y:+.1f}%<extra></extra>",
+        )
+    )
+
+    fig.add_hline(y=0, line_dash="dash", line_color="#e74c3c", line_width=1, opacity=0.7)
+
+    fig.add_trace(
+        go.Scatter(
+            x=[current_t],
+            y=[current_margin],
+            mode="markers",
+            name="Current",
+            marker=dict(color="#f39c12", size=14, symbol="diamond"),
+            hovertemplate="t=%{x:.1f}yr<br>Margin: %{y:+.1f}%<extra></extra>",
+        )
+    )
+
+    fig.update_layout(
+        xaxis_title="Years Since ChatGPT Launch (Nov 2022)",
+        yaxis_title="Profit Margin (%)",
+        xaxis=dict(gridcolor="#333"),
+        yaxis=dict(gridcolor="#333", zerolinecolor="#e74c3c", zerolinewidth=1, zeroline=True),
+        margin=dict(t=10, b=50, l=50, r=10),
+        height=380,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#e0e0e0", size=12),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        hovermode="x unified",
+    )
+    return fig

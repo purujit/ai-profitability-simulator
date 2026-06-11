@@ -13,9 +13,10 @@ ADOPTION_K = 2.5        # logistic growth rate (5x smartphone)
 ADOPTION_MIDPOINT = 4.48  # years since ChatGPT launch, calibrated to 80M at t=3.5
 
 
-def compute_paid_users_from_adoption(years_since_launch: float) -> float:
+def compute_paid_users_from_adoption(years_since_launch: float, tam: float = ADOPTION_TAM,
+                                      k: float = ADOPTION_K, midpoint: float = ADOPTION_MIDPOINT) -> float:
     """Logistic S-curve for paid AI user adoption."""
-    return ADOPTION_TAM / (1.0 + np.exp(-ADOPTION_K * (years_since_launch - ADOPTION_MIDPOINT)))
+    return tam / (1.0 + np.exp(-k * (years_since_launch - midpoint)))
 
 
 GPU_SATURATION_M = 25.0  # million GPUs at full DC buildout
@@ -23,9 +24,10 @@ GPU_K = 2.0               # deployment growth rate (slightly slower than adoptio
 GPU_MIDPOINT = 4.13       # calibrated to hit 5.5M at t=3.5 (Jensen Huang Oct 2025 disclosure)
 
 
-def compute_gpus_from_deployment(years_since_launch: float) -> float:
+def compute_gpus_from_deployment(years_since_launch: float, saturation: float = GPU_SATURATION_M,
+                                   k: float = GPU_K, midpoint: float = GPU_MIDPOINT) -> float:
     """Logistic S-curve for GPU deployment (DC buildout)."""
-    return GPU_SATURATION_M / (1.0 + np.exp(-GPU_K * (years_since_launch - GPU_MIDPOINT)))
+    return saturation / (1.0 + np.exp(-k * (years_since_launch - midpoint)))
 
 
 def compute_gpu_hourly_cost(

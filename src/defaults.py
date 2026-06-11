@@ -435,20 +435,72 @@ MARKET_PARAMS: list[Parameter] = [
         ],
     ),
     Parameter(
+        key="adoption_tam_millions",
+        label="User Adoption TAM",
+        default=1000.0,
+        min_val=100.0,
+        max_val=3000.0,
+        step=50.0,
+        unit="M paid users",
+        rationale=(
+            "Total addressable market for paid AI: ~1B global knowledge workers "
+            "(Stanford HAI 2026 AI Index). This is the saturation ceiling for the "
+            "paid user adoption S-curve. The adoption timeline slider moves along this curve."
+        ),
+        citations=[
+            ("Stanford HAI — 2026 AI Index Report",
+             "https://hai.stanford.edu/ai-index/2026-ai-index-report"),
+        ],
+    ),
+    Parameter(
+        key="adoption_growth_rate",
+        label="User Adoption Growth Rate",
+        default=2.5,
+        min_val=0.5,
+        max_val=5.0,
+        step=0.1,
+        unit="k",
+        rationale=(
+            "Logistic growth rate for paid AI adoption. Calibrated to smartphone adoption "
+            "compressed 5×. Higher k = faster S-curve ramp to saturation. At k=2.5, "
+            "the curve goes from 10% to 90% of TAM in ~1.8 years."
+        ),
+        citations=[],
+    ),
+    Parameter(
+        key="adoption_midpoint_years",
+        label="User Adoption Midpoint",
+        default=4.48,
+        min_val=1.0,
+        max_val=8.0,
+        step=0.1,
+        unit="years since ChatGPT",
+        rationale=(
+            "When half the TAM is reached. Calibrated to ~80M at t=3.5 (current). "
+            "S-curve midpoint occurs at t=4.48 (late 2026/early 2027). "
+            "At t=3.5: ~79M paid. At t=5.0: ~786M paid. At t=7.0: ~998M paid."
+        ),
+        citations=[],
+    ),
+    Parameter(
         key="adoption_years_since_launch",
-        label="Adoption Timeline",
+        label="Timeline (drives both curves)",
         default=3.5,
         min_val=0.5,
         max_val=7.0,
         step=0.25,
         unit="years since ChatGPT",
         rationale=(
-            "Logistic S-curve for paid AI user adoption, compressed 5× vs smartphone adoption. "
-            "TAM = 1B paid users (global knowledge workers per Stanford HAI 2026 AI Index). "
-            "k = 2.5, midpoint at 4.48 years, calibrated to ~80M at t=3.5 (current). Projects "
-            "to 512M by mid-2027, 786M by 2028, near saturation at 1B by 2029. GPU deployment "
-            "scales proportionally with paid user count (not all 10M GPUs deployed upfront)."
+            "Current position on the timeline. Both the user adoption curve and GPU "
+            "deployment curve compute their values at this time point. Slide forward "
+            "to see projected profitability as users and GPUs grow along their S-curves."
+            "t=3.5 is mid-2026 (ChatGPT launched Nov 2022)."
         ),
+        citations=[
+            ("Stanford HAI — 2026 AI Index Report",
+             "https://hai.stanford.edu/ai-index/2026-ai-index-report"),
+        ],
+    ),
         citations=[
             ("Stanford HAI — 2026 AI Index Report",
              "https://hai.stanford.edu/ai-index/2026-ai-index-report"),
