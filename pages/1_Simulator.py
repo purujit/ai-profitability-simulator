@@ -44,6 +44,7 @@ PRESETS = {
         "usage_hours_per_day": 8.0,
         "blended_price_per_mt": 0.20,
         "adoption_years_since_launch": 3.5,
+        "gpu_deployment_lead_years": 1.5,
         "tps_calibration_multiplier": 1.44,
     },
 }
@@ -101,7 +102,9 @@ config = {p.key: vals[p.key] for p in ALL_PARAMS}
 
 if config.get("adoption_years_since_launch") is not None:
     from src.engine import compute_paid_users_from_adoption
-    derived_paid = compute_paid_users_from_adoption(config["adoption_years_since_launch"])
+    lead = config.get("gpu_deployment_lead_years", 0.0)
+    projected_year = config["adoption_years_since_launch"] + lead
+    derived_paid = compute_paid_users_from_adoption(projected_year)
     config["paid_users_millions"] = derived_paid
 
 gpu_hourly_cost = compute_gpu_hourly_cost(

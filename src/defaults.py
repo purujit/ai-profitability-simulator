@@ -410,6 +410,24 @@ MARKET_PARAMS: list[Parameter] = [
             ("Stanford HAI — 2026 AI Index Report",
              "https://hai.stanford.edu/ai-index/2026-ai-index-report"),
         ],
+    ),
+    Parameter(
+        key="gpu_deployment_lead_years",
+        label="GPU Deployment Lead Time",
+        default=1.5,
+        min_val=0.0,
+        max_val=4.0,
+        step=0.25,
+        unit="years ahead",
+        rationale=(
+            "BigTech deploys GPU capacity ahead of projected demand. Profitability should be "
+            "computed at the user count projected for adoption_years + lead_years, not at "
+            "today's user count. Default 1.5 years: GPUs deployed today target the user "
+            "base expected 18 months out. At t=3.5 + 1.5 = t=5.0, the curve projects ~786M "
+            "paid users — the market the currently deployed 5.5M GPU fleet is built for."
+        ),
+        citations=[],
+    ),
     Parameter(
         key="usage_hours_per_day",
         label="Usage Hours per Day",
