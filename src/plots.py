@@ -148,9 +148,11 @@ def sensitivity_tornado(
     param_deltas.sort(key=lambda x: abs(x[2] - x[1]), reverse=True)
     param_deltas = param_deltas[:12]
 
+    low_values = [p[1] for p in param_deltas][::-1]
+    high_values = [p[2] for p in param_deltas][::-1]
     labels = [p[0] for p in param_deltas][::-1]
-    low_deltas = [p[1] - base_profit for p in param_deltas][::-1]
-    high_deltas = [p[2] - base_profit for p in param_deltas][::-1]
+    low_deltas = [p - base_profit for p in low_values]
+    high_deltas = [p - base_profit for p in high_values]
 
     fig = go.Figure()
 
@@ -177,7 +179,8 @@ def sensitivity_tornado(
             mode="markers",
             name="Lower value",
             marker=dict(color="#3498db", size=10, symbol="circle"),
-            hovertemplate="%{y}<br>Lower value change: $%{x:+.2f}/GPU-hr<extra></extra>",
+            customdata=low_values,
+            hovertemplate="%{y}<br>Profit: $%{customdata:.2f}/GPU-hr<br>Change: $%{x:+.2f}/GPU-hr<extra>Lower value</extra>",
         )
     )
     fig.add_trace(
@@ -187,7 +190,8 @@ def sensitivity_tornado(
             mode="markers",
             name="Higher value",
             marker=dict(color="#f39c12", size=10, symbol="diamond"),
-            hovertemplate="%{y}<br>Higher value change: $%{x:+.2f}/GPU-hr<extra></extra>",
+            customdata=high_values,
+            hovertemplate="%{y}<br>Profit: $%{customdata:.2f}/GPU-hr<br>Change: $%{x:+.2f}/GPU-hr<extra>Higher value</extra>",
         )
     )
 
@@ -200,7 +204,12 @@ def sensitivity_tornado(
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="#e0e0e0", size=11),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
-        xaxis=dict(title="Change in Profit per GPU-Hour vs Baseline ($)", gridcolor="#333"),
+        xaxis=dict(
+            title="Change in Profit per GPU-Hour vs Baseline ($)",
+            gridcolor="#333",
+            tickformat="+.2f",
+            hoverformat="+.2f",
+        ),
     )
     return fig
 

@@ -3,7 +3,7 @@
 import streamlit as st
 
 from src.controls import clear_parameter_controls, render_parameter_controls, render_preset_buttons
-from src.defaults import ALL_PARAMS
+from src.defaults import ALL_PARAMS, PARAMS_BY_KEY
 from src.engine import (
     apply_market_curves,
     compute_gpu_hourly_cost,
@@ -12,6 +12,7 @@ from src.engine import (
 )
 from src.tps_models import compute_tps, TPS_MODELS
 from src.plots import sensitivity_tornado, scenario_comparison_table
+from src.utils import fmt_currency
 
 st.title("Sensitivity Analysis")
 st.caption("Understand which parameters have the greatest impact on profitability.")
@@ -82,6 +83,26 @@ perturbable_labels.update({
     "paid_users_millions": "Paid Users (derived)",
     "total_gpus_millions": "Total GPUs (derived)",
 })
+
+
+def format_override(key: str, value: float) -> str:
+    param = PARAMS_BY_KEY.get(key)
+    unit = param.unit if param else ""
+    if unit == "$":
+        formatted = fmt_currency(value)
+    elif unit == "$/MW":
+        formatted = f"{fmt_currency(value)}/MW"
+    elif unit == "$/kWh":
+        formatted = f"${value:.3f}/kWh"
+    elif unit == "$/MT":
+        formatted = f"${value:.2f}/MT"
+    elif unit == "%":
+        formatted = f"{value:g}%"
+    elif unit:
+        formatted = f"{value:g} {unit}"
+    else:
+        formatted = f"{value:g}"
+    return f"{key}={formatted}"
 
 def run_scenario(vals_overrides):
     c = dict(config)
@@ -193,4 +214,4 @@ table_fig = scenario_comparison_table(scenario_results)
 st.plotly_chart(table_fig, width="stretch")
 
 for name, sd in scenario_defs.items():
-    st.caption(f"**{name}**: {sd['label']}  —  {'; '.join(f'{k}={v}' for k,v in sd['overrides'].items())}")
+    st.caption(f"**{name}**: {sd['label']}  —  {'; '.join(format_override(k, v) for k, v in sd['overrides'].items())}")
