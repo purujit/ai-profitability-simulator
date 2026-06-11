@@ -196,14 +196,15 @@ GPU_PARAMS: list[Parameter] = [
         key="dc_building_share_pct",
         label="Building Share of DC CapEx",
         default=30.0,
-        min_val=10.0,
-        max_val=80.0,
+        min_val=0.0,
+        max_val=100.0,
         step=5.0,
         unit="%",
         rationale=(
             "Share of DC CapEx allocated to building shell (amortized over 20 years per GAAP). "
             "Remainder is electrical/cooling/mechanical, amortized over GPU amortization period. "
             "AI data centers with liquid cooling and high-density power have a lower building share. "
+            "100% = OP's assumption (all DC CapEx amortized flat, no split). "
             "30% is typical for liquid-cooled NVL72-class facilities."
         ),
         citations=[],
