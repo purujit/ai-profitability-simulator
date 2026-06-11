@@ -2,7 +2,8 @@
 
 import streamlit as st
 
-from src.defaults import ALL_PARAMS, PARAM_GROUPS, get_defaults
+from src.controls import clear_parameter_controls, render_parameter_controls, render_preset_buttons
+from src.defaults import ALL_PARAMS
 from src.engine import (
     apply_market_curves,
     compute_gpu_hourly_cost,
@@ -17,23 +18,13 @@ st.caption("Understand which parameters have the greatest impact on profitabilit
 
 with st.sidebar:
     st.header("Current Baseline")
+    render_preset_buttons("sens", show_header=False)
+    st.divider()
     tps_model = st.selectbox("TPS Model", list(TPS_MODELS.keys()), index=0)
     delta_pct = st.slider("Perturbation", 5, 50, 20, 5, help="±% change applied to each parameter")
-    base_vals = {}
-    for group_name, group_params in PARAM_GROUPS.items():
-        with st.expander(group_name, expanded=False):
-            for p in group_params:
-                base_vals[p.key] = st.number_input(
-                    f"{p.label} ({p.unit})",
-                    min_value=float(p.min_val),
-                    max_value=float(p.max_val),
-                    value=float(p.default),
-                    step=float(p.step),
-                    key=f"sens_{p.key}",
-                )
+    base_vals = render_parameter_controls("sens", expanded_group="")
     if st.button("Restore Baseline Defaults", width="stretch"):
-        for p in ALL_PARAMS:
-            st.session_state.pop(f"sens_{p.key}", None)
+        clear_parameter_controls("sens")
         st.rerun()
 
 config = apply_market_curves(base_vals)

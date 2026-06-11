@@ -3,7 +3,8 @@
 import streamlit as st
 import numpy as np
 
-from src.defaults import ALL_PARAMS, PARAM_GROUPS
+from src.controls import clear_parameter_controls, render_parameter_controls, render_preset_buttons
+from src.defaults import ALL_PARAMS
 from src.engine import (
     apply_market_curves,
     compute_gpu_hourly_cost,
@@ -13,57 +14,18 @@ from src.engine import (
     solve_breakeven_users,
 )
 from src.tps_models import compute_tps, TPS_MODELS
-from src.utils import (
-    fmt_currency,
-    fmt_compact,
-    display_scale_for_unit,
-    scaled_slider_value_format,
-    slider_value_format,
-)
 
 st.title("Breakeven Solver")
 st.caption("Find the conditions required for AI inference to be profitable.")
 
 with st.sidebar:
+    render_preset_buttons("be")
+    st.divider()
     st.header("Parameters")
     tps_model = st.selectbox("TPS Model", list(TPS_MODELS.keys()), index=0)
-    vals = {}
-    for group_name, group_params in PARAM_GROUPS.items():
-        with st.expander(group_name, expanded=(group_name == "GPU Hardware & Power")):
-            for p in group_params:
-                if isinstance(p.step, int) and isinstance(p.min_val, int) and isinstance(p.max_val, int):
-                    min_v, max_v, step_v, def_v = int(p.min_val), int(p.max_val), int(p.step), int(p.default)
-                else:
-                    min_v, max_v, step_v, def_v = float(p.min_val), float(p.max_val), float(p.step), float(p.default)
-                scale, display_unit = display_scale_for_unit(p.unit)
-                if scale != 1.0:
-                    display_key = f"be_{p.key}_display"
-                    display_selected = st.slider(
-                        p.label,
-                        min_value=min_v / scale,
-                        max_value=max_v / scale,
-                        value=def_v / scale,
-                        step=step_v / scale,
-                        help=p.rationale,
-                        key=display_key,
-                        format=scaled_slider_value_format(display_unit),
-                    )
-                    vals[p.key] = display_selected * scale
-                else:
-                    vals[p.key] = st.slider(
-                        p.label,
-                        min_value=min_v,
-                        max_value=max_v,
-                        value=def_v,
-                        step=step_v,
-                        help=p.rationale,
-                        key=f"be_{p.key}",
-                        format=slider_value_format(p.unit),
-                    )
+    vals = render_parameter_controls("be")
     if st.button("Restore Baseline Defaults", width="stretch"):
-        for p in ALL_PARAMS:
-            st.session_state.pop(f"be_{p.key}", None)
-            st.session_state.pop(f"be_{p.key}_display", None)
+        clear_parameter_controls("be")
         st.rerun()
 
 config = apply_market_curves({p.key: vals[p.key] for p in ALL_PARAMS})

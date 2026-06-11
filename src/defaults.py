@@ -521,6 +521,55 @@ MARKET_PARAMS: list[Parameter] = [
 
 ALL_PARAMS = GPU_PARAMS + MODEL_PARAMS + MARKET_PARAMS
 
+PRESETS = {
+    "OP's Lenient Assumptions": {
+        "pue": 1.0,
+        "electricity_rate": 0.1178,
+        "free_paid_ratio": 0.0,
+        "gpu_power_draw_kw": 1.2,
+        "gpu_price_per_unit": 38889,
+        "gpu_amortization_years": 3,
+        "discount_rate_pct": 0.0,
+        "bonus_depreciation_pct": 0.0,
+        "usage_hours_per_day": 8.0,
+        "tps_calibration_multiplier": 1.0,
+        "blended_price_per_mt": 5.00,
+        "dc_capex_per_mw": 9_000_000,
+        "dc_building_share_pct": 100.0,
+        "total_parameters_b": 4000,
+        "moe_active_ratio": 7.5,
+        "base_tps_70b_1user": 250,
+        "saturation_tps_70b": 12000,
+        "adoption_years_since_launch": 3.5,
+    },
+    "My Assumptions": {
+        "pue": 1.1,
+        "electricity_rate": 0.0826,
+        "gpu_power_draw_kw": 0.6,
+        "gpu_price_per_unit": 41700,
+        "gpu_amortization_years": 6,
+        "discount_rate_pct": 7.0,
+        "bonus_depreciation_pct": 100.0,
+        "dc_capex_per_mw": 12_000_000,
+        "dc_building_share_pct": 30.0,
+        "total_parameters_b": 1600,
+        "moe_active_ratio": 3.1,
+        "free_paid_ratio": 0.3375,
+        "usage_hours_per_day": 8.0,
+        "blended_price_per_mt": 0.20,
+        "adoption_years_since_launch": 3.5,
+        "adoption_tam_millions": 1000.0,
+        "adoption_growth_rate": 2.5,
+        "adoption_midpoint_years": 4.48,
+        "tps_calibration_multiplier": 1.44,
+        "gpu_saturation_millions": 25.0,
+        "gpu_deployment_midpoint": 4.265,
+        "gpu_deployment_growth_rate": 2.0,
+    },
+}
+
+PARAMS_BY_KEY = {p.key: p for p in ALL_PARAMS}
+
 PARAM_GROUPS = {
     "GPU Hardware & Power": GPU_PARAMS,
     "Model Architecture": MODEL_PARAMS,

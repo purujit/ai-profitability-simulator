@@ -3,7 +3,8 @@
 import streamlit as st
 import numpy as np
 
-from src.defaults import ALL_PARAMS, PARAM_GROUPS, get_defaults
+from src.controls import render_parameter_controls, render_preset_buttons
+from src.defaults import ALL_PARAMS
 from src.engine import (
     apply_market_curves,
     compute_gpu_hourly_cost,
@@ -20,58 +21,7 @@ from src.utils import (
     fmt_compact,
     color_for_profit,
     compute_cost_breakdown,
-    display_scale_for_unit,
-    scaled_slider_value_format,
-    slider_value_format,
 )
-
-PRESETS = {
-    "OP's Lenient Assumptions": {
-        "pue": 1.0,
-        "electricity_rate": 0.1178,
-        "free_paid_ratio": 0.0,
-        "gpu_power_draw_kw": 1.2,
-        "gpu_price_per_unit": 38889,
-        "gpu_amortization_years": 3,
-        "discount_rate_pct": 0.0,
-        "bonus_depreciation_pct": 0.0,
-        "usage_hours_per_day": 8.0,
-        "tps_calibration_multiplier": 1.0,
-        "blended_price_per_mt": 5.00,
-        "dc_capex_per_mw": 9_000_000,
-        "dc_building_share_pct": 100.0,
-        "total_parameters_b": 4000,
-        "moe_active_ratio": 7.5,
-        "base_tps_70b_1user": 250,
-        "saturation_tps_70b": 12000,
-        "adoption_years_since_launch": 3.5,
-    },
-    "My Assumptions": {
-        "pue": 1.1,
-        "electricity_rate": 0.0826,
-        "gpu_power_draw_kw": 0.6,
-        "gpu_price_per_unit": 41700,
-        "gpu_amortization_years": 6,
-        "discount_rate_pct": 7.0,
-        "bonus_depreciation_pct": 100.0,
-        "dc_capex_per_mw": 12_000_000,
-        "dc_building_share_pct": 30.0,
-        "total_parameters_b": 1600,
-        "moe_active_ratio": 3.1,
-        "free_paid_ratio": 0.3375,
-        "usage_hours_per_day": 8.0,
-        "blended_price_per_mt": 0.20,
-        "adoption_years_since_launch": 3.5,
-        "adoption_tam_millions": 1000.0,
-        "adoption_growth_rate": 2.5,
-        "adoption_midpoint_years": 4.48,
-        "tps_calibration_multiplier": 1.44,
-        "gpu_saturation_millions": 25.0,
-        "gpu_deployment_midpoint": 4.265,
-        "gpu_deployment_growth_rate": 2.0,
-    },
-}
-PARAMS_BY_KEY = {p.key: p for p in ALL_PARAMS}
 
 st.title("AI Profitability Simulator")
 st.caption(
@@ -80,92 +30,12 @@ st.caption(
 )
 
 with st.sidebar:
-    st.header("Presets")
-    pcol1, pcol2 = st.columns(2)
-    selected_preset = None
-    active_preset = st.session_state.get("_active_preset")
-    if pcol1.button(
-        "OP's Assumptions",
-        width="stretch",
-        type="primary" if active_preset == "OP's Lenient Assumptions" else "secondary",
-        help="u/ksjdragon's original lenient baseline: no free users, no cooling costs, $0.118/kWh",
-    ):
-        selected_preset = "OP's Lenient Assumptions"
-    if pcol2.button(
-        "My Assumptions",
-        width="stretch",
-        type="primary" if active_preset == "My Assumptions" else "secondary",
-        help="Updated baseline with current hardware, cost, pricing, and adoption assumptions",
-    ):
-        selected_preset = "My Assumptions"
-    if active_preset:
-        st.caption(f"Selected: {active_preset}")
+    render_preset_buttons("")
 
     st.divider()
     st.header("Parameters")
     tps_model = st.selectbox("TPS Model", list(TPS_MODELS.keys()), index=0)
-
-    if selected_preset:
-        overrides = PRESETS[selected_preset]
-        for k, v in overrides.items():
-            st.session_state[k] = v
-            param = PARAMS_BY_KEY.get(k)
-            if param:
-                scale, _ = display_scale_for_unit(param.unit)
-                if scale != 1.0:
-                    st.session_state[f"{k}_display"] = v / scale
-        st.session_state["_active_preset"] = selected_preset
-        st.rerun()
-
-    vals = {}
-    for group_name, group_params in PARAM_GROUPS.items():
-        with st.expander(group_name, expanded=(group_name == "GPU Hardware & Power")):
-            for p in group_params:
-                if isinstance(p.step, int) and isinstance(p.min_val, int) and isinstance(p.max_val, int):
-                    min_v, max_v, step_v = int(p.min_val), int(p.max_val), int(p.step)
-                    current_val = st.session_state.get(p.key, p.default)
-                    current_val = int(current_val)
-                else:
-                    min_v, max_v, step_v = float(p.min_val), float(p.max_val), float(p.step)
-                    current_val = st.session_state.get(p.key, p.default)
-                    current_val = float(current_val)
-                scale, display_unit = display_scale_for_unit(p.unit)
-                if scale != 1.0:
-                    display_val = current_val / scale
-                    display_min = min_v / scale
-                    display_max = max_v / scale
-                    display_step = step_v / scale
-                    display_key = f"{p.key}_display"
-                    display_selected = st.slider(
-                        p.label,
-                        min_value=display_min,
-                        max_value=display_max,
-                        value=display_val,
-                        step=display_step,
-                        key=display_key,
-                        help=p.rationale,
-                        format=scaled_slider_value_format(display_unit),
-                    )
-                    vals[p.key] = display_selected * scale
-                    st.session_state[p.key] = vals[p.key]
-                else:
-                    vals[p.key] = st.slider(
-                        p.label,
-                        min_value=min_v,
-                        max_value=max_v,
-                        value=current_val,
-                        step=step_v,
-                        key=p.key,
-                        help=p.rationale,
-                        format=slider_value_format(p.unit),
-                    )
-
-    active_preset = st.session_state.get("_active_preset")
-    if active_preset:
-        preset_vals = PRESETS[active_preset]
-        if any(vals.get(k) != v for k, v in preset_vals.items() if k in vals):
-            st.session_state["_active_preset"] = None
-            st.rerun()
+    vals = render_parameter_controls("")
 
 config = apply_market_curves({p.key: vals[p.key] for p in ALL_PARAMS})
 t = config.get("adoption_years_since_launch")
