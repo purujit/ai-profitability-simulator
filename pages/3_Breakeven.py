@@ -3,7 +3,13 @@
 import streamlit as st
 import numpy as np
 
-from src.controls import clear_parameter_controls, render_parameter_controls, render_preset_buttons
+from src.controls import (
+    clear_parameter_controls,
+    render_parameter_controls,
+    render_preset_buttons,
+    render_timeline_control,
+    validate_active_preset,
+)
 from src.defaults import ALL_PARAMS
 from src.engine import (
     apply_market_curves,
@@ -17,16 +23,20 @@ from src.tps_models import compute_tps, TPS_MODELS
 
 st.title("Breakeven Solver")
 st.caption("Find the conditions required for AI inference to be profitable.")
+timeline_value = render_timeline_control("be")
 
 with st.sidebar:
     render_preset_buttons("be")
     st.divider()
     st.header("Parameters")
     tps_model = st.selectbox("TPS Model", list(TPS_MODELS.keys()), index=0)
-    vals = render_parameter_controls("be")
+    vals = render_parameter_controls("be", include_timeline=False, validate_preset=False)
     if st.button("Restore Baseline Defaults", width="stretch"):
         clear_parameter_controls("be")
         st.rerun()
+
+vals["adoption_years_since_launch"] = timeline_value
+validate_active_preset("be", vals)
 
 config = apply_market_curves({p.key: vals[p.key] for p in ALL_PARAMS})
 

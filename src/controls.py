@@ -1,11 +1,15 @@
 """Shared Streamlit controls for parameter presets and input panels."""
 
+from datetime import date, timedelta
 import math
 
 import streamlit as st
 
 from src.defaults import ALL_PARAMS, PARAM_GROUPS, PARAMS_BY_KEY, PRESETS, get_defaults
 from src.utils import display_scale_for_unit, scaled_slider_value_format, slider_value_format
+
+TIMELINE_KEY = "adoption_years_since_launch"
+CHATGPT_LAUNCH_DATE = date(2022, 11, 30)
 
 
 def preset_values(preset_name: str) -> dict[str, float]:
@@ -38,6 +42,60 @@ def _set_param_state(prefix: str, key: str, value: float) -> None:
 def _clear_param_state(prefix: str, key: str) -> None:
     st.session_state.pop(_state_key(prefix, key), None)
     st.session_state.pop(_display_key(prefix, key), None)
+
+
+def _current_parameter_value(prefix: str, p) -> float:
+    if isinstance(p.step, int) and isinstance(p.min_val, int) and isinstance(p.max_val, int):
+        return int(st.session_state.get(_state_key(prefix, p.key), p.default))
+    return float(st.session_state.get(_state_key(prefix, p.key), p.default))
+
+
+def _timeline_calendar_label(years_since_launch: float) -> str:
+    target = CHATGPT_LAUNCH_DATE + timedelta(days=round(years_since_launch * 365.2425))
+    if target.month <= 4:
+        period = "early"
+    elif target.month <= 8:
+        period = "mid"
+    else:
+        period = "late"
+    return f"{period}-{target.year}"
+
+
+def _render_parameter_control(prefix: str, p) -> float:
+    if isinstance(p.step, int) and isinstance(p.min_val, int) and isinstance(p.max_val, int):
+        min_v, max_v, step_v = int(p.min_val), int(p.max_val), int(p.step)
+        current_val = int(st.session_state.get(_state_key(prefix, p.key), p.default))
+    else:
+        min_v, max_v, step_v = float(p.min_val), float(p.max_val), float(p.step)
+        current_val = float(st.session_state.get(_state_key(prefix, p.key), p.default))
+
+    scale, display_unit = display_scale_for_unit(p.unit)
+    if scale != 1.0:
+        display_val = current_val / scale
+        display_selected = st.slider(
+            p.label,
+            min_value=min_v / scale,
+            max_value=max_v / scale,
+            value=display_val,
+            step=step_v / scale,
+            key=_display_key(prefix, p.key),
+            help=p.rationale,
+            format=scaled_slider_value_format(display_unit),
+        )
+        selected = display_selected * scale
+        st.session_state[_state_key(prefix, p.key)] = selected
+        return selected
+
+    return st.slider(
+        p.label,
+        min_value=min_v,
+        max_value=max_v,
+        value=current_val,
+        step=step_v,
+        key=_state_key(prefix, p.key),
+        help=p.rationale,
+        format=slider_value_format(p.unit),
+    )
 
 
 def render_preset_buttons(prefix: str, *, show_header: bool = True) -> None:
@@ -77,52 +135,71 @@ def render_preset_buttons(prefix: str, *, show_header: bool = True) -> None:
         st.rerun()
 
 
-def render_parameter_controls(prefix: str, *, expanded_group: str = "GPU Hardware & Power") -> dict[str, float]:
+def render_timeline_control(prefix: str) -> float:
+    """Render the timeline as a prominent page-level control."""
+    st.subheader("Timeline")
+    st.caption(
+        "Controls both GPU deployment and paid usage growth by advancing their S-curves. "
+        "Growth assumptions are defined in [Market & Usage](#market-usage) below."
+    )
+    timeline_value = _render_parameter_control(prefix, PARAMS_BY_KEY[TIMELINE_KEY])
+    st.caption(
+        f"Selected point: {timeline_value:g} years since ChatGPT launch "
+        f"= {_timeline_calendar_label(timeline_value)}."
+    )
+    return timeline_value
+
+
+def validate_active_preset(prefix: str, vals: dict[str, float]) -> None:
+    """Clear the active preset once any rendered control diverges from it."""
+    active_preset = st.session_state.get(_active_preset_key(prefix))
+    if not active_preset:
+        return
+
+    expected = preset_values(active_preset)
+    if any(not math.isclose(float(vals[k]), float(expected[k]), rel_tol=0.0, abs_tol=1e-9) for k in vals):
+        st.session_state[_active_preset_key(prefix)] = None
+        st.rerun()
+
+
+def render_parameter_controls(
+    prefix: str,
+    *,
+    expanded_group: str = "",
+    include_timeline: bool = True,
+    validate_preset: bool = True,
+) -> dict[str, float]:
     """Render parameter controls using the same formatting across pages."""
     vals = {}
+    if include_timeline:
+        vals[TIMELINE_KEY] = render_timeline_control(prefix)
+        st.divider()
+
+    group_names = list(PARAM_GROUPS.keys())
+    initial_group = expanded_group if expanded_group in PARAM_GROUPS else "None"
+    selected_group = st.radio(
+        "Input pane",
+        ["None", *group_names],
+        index=["None", *group_names].index(initial_group),
+        key=f"{prefix}_input_pane" if prefix else "_input_pane",
+    )
+    st.markdown('<span id="market-usage"></span>', unsafe_allow_html=True)
+
     for group_name, group_params in PARAM_GROUPS.items():
-        with st.expander(group_name, expanded=(group_name == expanded_group)):
+        if selected_group == group_name:
+            st.subheader(group_name)
             for p in group_params:
-                if isinstance(p.step, int) and isinstance(p.min_val, int) and isinstance(p.max_val, int):
-                    min_v, max_v, step_v = int(p.min_val), int(p.max_val), int(p.step)
-                    current_val = int(st.session_state.get(_state_key(prefix, p.key), p.default))
-                else:
-                    min_v, max_v, step_v = float(p.min_val), float(p.max_val), float(p.step)
-                    current_val = float(st.session_state.get(_state_key(prefix, p.key), p.default))
+                if p.key == TIMELINE_KEY:
+                    continue
+                vals[p.key] = _render_parameter_control(prefix, p)
+        else:
+            for p in group_params:
+                if p.key == TIMELINE_KEY:
+                    continue
+                vals[p.key] = _current_parameter_value(prefix, p)
 
-                scale, display_unit = display_scale_for_unit(p.unit)
-                if scale != 1.0:
-                    display_val = current_val / scale
-                    display_selected = st.slider(
-                        p.label,
-                        min_value=min_v / scale,
-                        max_value=max_v / scale,
-                        value=display_val,
-                        step=step_v / scale,
-                        key=_display_key(prefix, p.key),
-                        help=p.rationale,
-                        format=scaled_slider_value_format(display_unit),
-                    )
-                    vals[p.key] = display_selected * scale
-                    st.session_state[_state_key(prefix, p.key)] = vals[p.key]
-                else:
-                    vals[p.key] = st.slider(
-                        p.label,
-                        min_value=min_v,
-                        max_value=max_v,
-                        value=current_val,
-                        step=step_v,
-                        key=_state_key(prefix, p.key),
-                        help=p.rationale,
-                        format=slider_value_format(p.unit),
-                    )
-
-    active_preset = st.session_state.get(_active_preset_key(prefix))
-    if active_preset:
-        expected = preset_values(active_preset)
-        if any(not math.isclose(float(vals[k]), float(expected[k]), rel_tol=0.0, abs_tol=1e-9) for k in vals):
-            st.session_state[_active_preset_key(prefix)] = None
-            st.rerun()
+    if validate_preset:
+        validate_active_preset(prefix, vals)
 
     return vals
 

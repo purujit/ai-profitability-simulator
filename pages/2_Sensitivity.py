@@ -2,7 +2,13 @@
 
 import streamlit as st
 
-from src.controls import clear_parameter_controls, render_parameter_controls, render_preset_buttons
+from src.controls import (
+    clear_parameter_controls,
+    render_parameter_controls,
+    render_preset_buttons,
+    render_timeline_control,
+    validate_active_preset,
+)
 from src.defaults import ALL_PARAMS, PARAMS_BY_KEY
 from src.engine import (
     apply_market_curves,
@@ -16,6 +22,7 @@ from src.utils import fmt_currency
 
 st.title("Sensitivity Analysis")
 st.caption("Understand which parameters have the greatest impact on profitability.")
+timeline_value = render_timeline_control("sens")
 
 with st.sidebar:
     st.header("Current Baseline")
@@ -23,10 +30,13 @@ with st.sidebar:
     st.divider()
     tps_model = st.selectbox("TPS Model", list(TPS_MODELS.keys()), index=0)
     delta_pct = st.slider("Perturbation", 5, 50, 20, 5, help="±% change applied to each parameter")
-    base_vals = render_parameter_controls("sens", expanded_group="")
+    base_vals = render_parameter_controls("sens", expanded_group="", include_timeline=False, validate_preset=False)
     if st.button("Restore Baseline Defaults", width="stretch"):
         clear_parameter_controls("sens")
         st.rerun()
+
+base_vals["adoption_years_since_launch"] = timeline_value
+validate_active_preset("sens", base_vals)
 
 config = apply_market_curves(base_vals)
 gpu_hourly_cost = compute_gpu_hourly_cost(

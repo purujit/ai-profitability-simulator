@@ -3,7 +3,7 @@
 import streamlit as st
 import numpy as np
 
-from src.controls import render_parameter_controls, render_preset_buttons
+from src.controls import render_parameter_controls, render_preset_buttons, render_timeline_control, validate_active_preset
 from src.defaults import ALL_PARAMS
 from src.engine import (
     apply_market_curves,
@@ -28,6 +28,7 @@ st.caption(
     "Based on the model by [u/ksjdragon](https://www.reddit.com/r/BetterOffline/comments/1tzwnhi/ai_profitability_is_mathematically_impossible/). "
     "Adjust any parameter to explore how it affects profitability."
 )
+timeline_value = render_timeline_control("")
 
 with st.sidebar:
     render_preset_buttons("")
@@ -35,7 +36,10 @@ with st.sidebar:
     st.divider()
     st.header("Parameters")
     tps_model = st.selectbox("TPS Model", list(TPS_MODELS.keys()), index=0)
-    vals = render_parameter_controls("")
+    vals = render_parameter_controls("", include_timeline=False, validate_preset=False)
+
+vals["adoption_years_since_launch"] = timeline_value
+validate_active_preset("", vals)
 
 config = apply_market_curves({p.key: vals[p.key] for p in ALL_PARAMS})
 t = config.get("adoption_years_since_launch")
@@ -86,6 +90,32 @@ industry = compute_industry_annual(
 )
 
 gpu_breakdown, dc_breakdown, elec_breakdown = compute_cost_breakdown(gpu_hourly_cost, config)
+
+if t is not None:
+    st.subheader("Margin Over Time (Both S-Curves Advancing)")
+
+    t_range = np.linspace(1.0, 7.0, 50)
+    margins = []
+    concs = []
+    users = []
+    gpus = []
+    for ti in t_range:
+        p = compute_paid_users_from_adoption(ti, tam, k_adopt, mp_adopt)
+        gp = compute_gpus_from_deployment(ti, saturation, k_gpu, mp_gpu)
+        tc2, pc2 = compute_concurrency(gp, p, config["free_paid_ratio"], config["usage_hours_per_day"])
+        tt2 = compute_tps(tc2, computed_params, tps_model, config)
+        r2 = compute_profitability(gpu_hourly_cost, tt2, tc2, pc2, config["blended_price_per_mt"])
+        margins.append(r2["profit_margin_pct"])
+        concs.append(tc2)
+        users.append(p)
+        gpus.append(gp)
+
+    margin_fig = margin_over_time(t_range, np.array(margins), np.array(concs),
+                                   np.array(users), np.array(gpus), t,
+                                   results["profit_margin_pct"])
+    st.plotly_chart(margin_fig, width="stretch")
+
+st.divider()
 
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 
@@ -142,31 +172,6 @@ with col_right:
         results["cost_per_mt"],
     )
     st.plotly_chart(cost_curve, width="stretch")
-
-if t is not None:
-    st.divider()
-    st.subheader("Margin Over Time (Both S-Curves Advancing)")
-
-    t_range = np.linspace(1.0, 7.0, 50)
-    margins = []
-    concs = []
-    users = []
-    gpus = []
-    for ti in t_range:
-        p = compute_paid_users_from_adoption(ti, tam, k_adopt, mp_adopt)
-        gp = compute_gpus_from_deployment(ti, saturation, k_gpu, mp_gpu)
-        tc2, pc2 = compute_concurrency(gp, p, config["free_paid_ratio"], config["usage_hours_per_day"])
-        tt2 = compute_tps(tc2, computed_params, tps_model, config)
-        r2 = compute_profitability(gpu_hourly_cost, tt2, tc2, pc2, config["blended_price_per_mt"])
-        margins.append(r2["profit_margin_pct"])
-        concs.append(tc2)
-        users.append(p)
-        gpus.append(gp)
-
-    margin_fig = margin_over_time(t_range, np.array(margins), np.array(concs),
-                                   np.array(users), np.array(gpus), t,
-                                   results["profit_margin_pct"])
-    st.plotly_chart(margin_fig, width="stretch")
 
 st.divider()
 
