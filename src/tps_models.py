@@ -89,7 +89,9 @@ TPS_MODELS = {
 
 def compute_tps(u: float, p_billion: float, model_name: str, config: dict) -> float:
     """Compute TPS for a given concurrency and parameter count using the selected model."""
-    u = max(u, 0.01)
+    concurrency_efficiency = config.get("concurrency_efficiency_pct", 100.0) / 100.0
+    concurrency_efficiency = min(max(concurrency_efficiency, 0.01), 1.0)
+    u = max(u * concurrency_efficiency, 0.01)
     p_billion = max(p_billion, 0.1)
     func = TPS_MODELS.get(model_name, ols_logistic)
     raw_tps = func(u, p_billion, config)

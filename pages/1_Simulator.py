@@ -72,6 +72,7 @@ total_concurrent, paid_concurrent = compute_concurrency(
 )
 
 computed_params = config["total_parameters_b"] * (config["moe_active_ratio"] / 100.0)
+effective_concurrent = total_concurrent * (config.get("concurrency_efficiency_pct", 100.0) / 100.0)
 
 tps = compute_tps(total_concurrent, computed_params, tps_model, config)
 
@@ -196,6 +197,7 @@ with col_detail:
         "Tokens/GPU-hr": f"{results['tokens_per_hour']:,.0f}",
         "Paid User Ratio": f"{results['paid_ratio']:.4f}",
         "Total Concurrent/GPU": f"{total_concurrent:,.1f}",
+        "Effective Concurrent/GPU": f"{effective_concurrent:,.1f}",
         "Paid Concurrent/GPU": f"{paid_concurrent:,.3f}",
         "Total GPUs": f"{config['total_gpus_millions']:.2f}M",
         "Annual Pre-Tax Profit": fmt_currency(industry["annual_pretax_profit"]),

@@ -61,6 +61,35 @@ def test_op_cost_per_mt_concurrency_6():
     assert abs(cost_mt - 4.22) < 1.5, f"Expected ~4.22, got {cost_mt:.2f}"
 
 
+def test_concurrency_efficiency_default_preserves_tps():
+    """100% concurrency efficiency should preserve existing TPS behavior."""
+    base_tps = compute_tps(20.0, 70.0, "OP's Logistic (Original Post)", OP_CONFIG)
+    efficient_tps = compute_tps(
+        20.0,
+        70.0,
+        "OP's Logistic (Original Post)",
+        {**OP_CONFIG, "concurrency_efficiency_pct": 100.0},
+    )
+    assert efficient_tps == pytest.approx(base_tps)
+
+
+def test_concurrency_efficiency_haircuts_effective_tps():
+    """Lower concurrency efficiency should reduce modeled throughput."""
+    base_tps = compute_tps(
+        20.0,
+        70.0,
+        "OP's Logistic (Original Post)",
+        {**OP_CONFIG, "concurrency_efficiency_pct": 100.0},
+    )
+    haircut_tps = compute_tps(
+        20.0,
+        70.0,
+        "OP's Logistic (Original Post)",
+        {**OP_CONFIG, "concurrency_efficiency_pct": 50.0},
+    )
+    assert haircut_tps < base_tps
+
+
 def test_op_full_profitability_lenient():
     """OP's full lenient scenario: ~80M users, ~4.45M GPUs."""
     config = {

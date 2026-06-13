@@ -481,6 +481,22 @@ MARKET_PARAMS: list[Parameter] = [
         citations=[],
     ),
     Parameter(
+        key="concurrency_efficiency_pct",
+        label="Concurrency Efficiency",
+        default=100.0,
+        min_val=25.0,
+        max_val=100.0,
+        step=5.0,
+        unit="%",
+        rationale=(
+            "Real-world serving efficiency haircut for bursty, latency-sensitive, or uneven workloads. "
+            "100% means the TPS model gets full benefit from the computed concurrent user load. "
+            "Lower values reduce effective batching/concurrency before throughput is calculated, "
+            "raising cost per token while leaving underlying user demand unchanged."
+        ),
+        citations=[],
+    ),
+    Parameter(
         key="blended_price_per_mt",
         label="Blended Price per MT",
         default=0.20,

@@ -84,6 +84,7 @@ perturbable_keys = [
     "paid_users_millions",
     "free_paid_ratio",
     "usage_hours_per_day",
+    "concurrency_efficiency_pct",
     "blended_price_per_mt",
     "total_gpus_millions",
 ]
