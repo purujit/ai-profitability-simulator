@@ -44,12 +44,6 @@ def _clear_param_state(prefix: str, key: str) -> None:
     st.session_state.pop(_display_key(prefix, key), None)
 
 
-def _current_parameter_value(prefix: str, p) -> float:
-    if isinstance(p.step, int) and isinstance(p.min_val, int) and isinstance(p.max_val, int):
-        return int(st.session_state.get(_state_key(prefix, p.key), p.default))
-    return float(st.session_state.get(_state_key(prefix, p.key), p.default))
-
-
 def _timeline_calendar_label(years_since_launch: float) -> str:
     target = CHATGPT_LAUNCH_DATE + timedelta(days=round(years_since_launch * 365.2425))
     if target.month <= 4:
@@ -175,28 +169,14 @@ def render_parameter_controls(
         vals[TIMELINE_KEY] = render_timeline_control(prefix)
         st.divider()
 
-    group_names = list(PARAM_GROUPS.keys())
-    initial_group = expanded_group if expanded_group in PARAM_GROUPS else "None"
-    selected_group = st.radio(
-        "Input pane",
-        ["None", *group_names],
-        index=["None", *group_names].index(initial_group),
-        key=f"{prefix}_input_pane" if prefix else "_input_pane",
-    )
-    st.markdown('<span id="market-usage"></span>', unsafe_allow_html=True)
-
     for group_name, group_params in PARAM_GROUPS.items():
-        if selected_group == group_name:
-            st.subheader(group_name)
+        if group_name == "Market & Usage":
+            st.markdown('<span id="market-usage"></span>', unsafe_allow_html=True)
+        with st.expander(group_name, expanded=(group_name == expanded_group)):
             for p in group_params:
                 if p.key == TIMELINE_KEY:
                     continue
                 vals[p.key] = _render_parameter_control(prefix, p)
-        else:
-            for p in group_params:
-                if p.key == TIMELINE_KEY:
-                    continue
-                vals[p.key] = _current_parameter_value(prefix, p)
 
     if validate_preset:
         validate_active_preset(prefix, vals)
